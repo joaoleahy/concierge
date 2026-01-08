@@ -13,7 +13,7 @@ import { ConciergeChat } from "@/components/chat/ConciergeChat";
 import { ItineraryCalendar } from "@/components/itinerary/ItineraryCalendar";
 import { PinVerificationModal } from "@/components/guest/PinVerificationModal";
 import { MyRequestsSheet } from "@/components/guest/MyRequestsSheet";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
@@ -24,7 +24,6 @@ import "@fontsource/playfair-display/700.css";
 export default function GuestHome() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useTranslation();
   const qrCode = searchParams.get("room") || DEMO_QR_CODE;
   
@@ -80,12 +79,11 @@ export default function GuestHome() {
   // Show toast when staff responds
   useEffect(() => {
     if (hasNewUpdate) {
-      toast({
-        title: t("requests.myRequests"),
+      toast.info(t("requests.myRequests"), {
         description: t("requests.staffResponse").replace(":", ""),
       });
     }
-  }, [hasNewUpdate, toast, t]);
+  }, [hasNewUpdate, t]);
 
   if (isLoading || sessionLoading) {
     return (

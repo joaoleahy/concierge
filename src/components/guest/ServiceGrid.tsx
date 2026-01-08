@@ -115,11 +115,13 @@ export function ServiceGrid({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="grid grid-cols-2 gap-3 sm:grid-cols-3"
       variants={container}
       initial="hidden"
       animate="show"
+      role="grid"
+      aria-label={t("services.title")}
     >
       {/* Quick service items */}
       {quickServices.map((service) => {
@@ -135,6 +137,7 @@ export function ServiceGrid({
               "service-grid-item flex flex-col items-center gap-3 text-center",
               "hover-lift cursor-pointer"
             )}
+            aria-label={`${t("services.requestService")}: ${displayName}`}
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <IconComponent className="h-6 w-6 text-primary" />
@@ -151,6 +154,7 @@ export function ServiceGrid({
         variants={item}
         onClick={onWifiClick}
         className="service-grid-item flex flex-col items-center gap-3 text-center hover-lift cursor-pointer"
+        aria-label={t("wifi.title")}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-concierge-success/10">
           <Wifi className="h-6 w-6 text-concierge-success" />
@@ -165,6 +169,7 @@ export function ServiceGrid({
         variants={item}
         onClick={onLocalGuideClick}
         className="service-grid-item flex flex-col items-center gap-3 text-center hover-lift cursor-pointer"
+        aria-label={t("recommendations.title")}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-concierge-gold/10">
           <MapPin className="h-6 w-6 text-concierge-gold" />
@@ -179,6 +184,7 @@ export function ServiceGrid({
         variants={item}
         onClick={onItineraryClick}
         className="service-grid-item flex flex-col items-center gap-3 text-center hover-lift cursor-pointer"
+        aria-label={t("itinerary.title")}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
           <CalendarDays className="h-6 w-6 text-primary" />
@@ -193,6 +199,7 @@ export function ServiceGrid({
         variants={item}
         onClick={onRequestsClick}
         className="service-grid-item flex flex-col items-center gap-3 text-center hover-lift cursor-pointer relative"
+        aria-label={`${t("requests.myRequests")}${hasNewUpdate ? " - new update available" : ""}`}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-concierge-success/10 relative">
           <ClipboardList className="h-6 w-6 text-concierge-success" />
@@ -210,6 +217,7 @@ export function ServiceGrid({
         variants={item}
         onClick={onChatClick}
         className="service-grid-item flex flex-col items-center gap-3 text-center hover-lift cursor-pointer"
+        aria-label={t("chat.title")}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
           <MessageCircle className="h-6 w-6 text-primary" />

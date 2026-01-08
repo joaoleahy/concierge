@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceType } from "@/hooks/useServiceTypes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -29,7 +29,6 @@ export function DirectServiceModal({
 }: DirectServiceModalProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [details, setDetails] = useState("");
@@ -76,11 +75,7 @@ export function DirectServiceModal({
 
     } catch (error) {
       console.error("Error creating service request:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send request. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to send request. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

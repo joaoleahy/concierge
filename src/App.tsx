@@ -1,8 +1,8 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useSearchParams, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useSearchParams } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import GuestHome from "./pages/GuestHome";
 import LocalGuide from "./pages/LocalGuide";
 import StaffDashboard from "./pages/StaffDashboard";
@@ -29,24 +29,25 @@ function HomeRouter() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomeRouter />} />
-          <Route path="/guest" element={<GuestHome />} />
-          <Route path="/local-guide" element={<LocalGuide />} />
-          <Route path="/staff" element={<StaffDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomeRouter />} />
+            <Route path="/guest" element={<GuestHome />} />
+            <Route path="/local-guide" element={<LocalGuide />} />
+            <Route path="/staff" element={<StaffDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

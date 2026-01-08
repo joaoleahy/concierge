@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface ServiceRequestModalProps {
   service: ServiceType;
@@ -25,7 +25,6 @@ export function ServiceRequestModal({
   onClose,
 }: ServiceRequestModalProps) {
   const { t, language } = useLanguage();
-  const { toast } = useToast();
   const [details, setDetails] = useState("");
 
   const displayName = language === "pt" && service.name_pt 
@@ -39,10 +38,7 @@ export function ServiceRequestModal({
 
   const handleSendRequest = () => {
     if (service.requires_details && !details.trim()) {
-      toast({
-        title: "Please provide details",
-        variant: "destructive",
-      });
+      toast.error("Please provide details");
       return;
     }
 
@@ -54,8 +50,7 @@ export function ServiceRequestModal({
     );
 
     // Show confirmation toast
-    toast({
-      title: t("openingWhatsApp"),
+    toast.info(t("openingWhatsApp"), {
       description: `${t("room")} ${roomNumber}`,
     });
 
