@@ -1,0 +1,343 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "optional": "opcional",
+    "required": "obligatorio"
+  },
+  "header": {
+    "welcome": "Bienvenido",
+    "room": "Habitación"
+  },
+  "services": {
+    "title": "Servicios del Hotel",
+    "requestService": "Solicitar Servicio",
+    "sendRequest": "Enviar Solicitud",
+    "detailsPlaceholder": "Agregue detalles sobre su solicitud...",
+    "successMessage": "¡Solicitud enviada con éxito!",
+    "requestSent": "Solicitud Enviada",
+    "staffNotified": "Nuestro personal ha sido notificado y lo asistirá en breve.",
+    "preferredTime": "Hora preferida",
+    "selectTime": "Seleccionar hora",
+    "description": "Descripción (opcional)",
+    "destination": "Destino",
+    "pickupTime": "Hora de recogida",
+    "lateCheckoutTime": "Hora de checkout",
+    "issueDescription": "Describa el problema"
+  },
+  "wifi": {
+    "title": "WiFi",
+    "password": "Contraseña",
+    "copied": "¡Contraseña copiada!",
+    "clickToCopy": "Clic para copiar"
+  },
+  "itinerary": {
+    "title": "Mi Itinerario",
+    "addActivity": "Añadir Actividad",
+    "editActivity": "Editar Actividad",
+    "activityName": "Nombre de la actividad",
+    "location": "Ubicación",
+    "notes": "Notas",
+    "date": "Fecha",
+    "start": "Inicio",
+    "end": "Fin",
+    "saveChanges": "Guardar Cambios",
+    "itemMoved": "¡Elemento movido!",
+    "itemUpdated": "¡Elemento actualizado!",
+    "itemDeleted": "Eliminado del itinerario",
+    "itemAdded": "¡Añadido al itinerario!",
+    "failedToAdd": "Error al añadir elemento",
+    "failedToUpdate": "Error al actualizar elemento",
+    "failedToMove": "Error al mover elemento",
+    "failedToDelete": "Error al eliminar elemento",
+    "noActivities": "No hay actividades planeadas para este día",
+    "tapToAdd": "Toque + para añadir",
+    "views": {
+      "list": "Lista",
+      "week": "Semana"
+    },
+    "categories": {
+      "restaurant": "Restaurante",
+      "attraction": "Atracción",
+      "beach": "Playa",
+      "nightlife": "Vida Nocturna",
+      "shopping": "Compras",
+      "tour": "Tour",
+      "other": "Otro"
+    }
+  },
+  "chat": {
+    "title": "Concierge",
+    "placeholder": "Pregúntame lo que quieras...",
+    "welcomeTitle": "¡Bienvenido a {{hotelName}}!",
+    "welcomeMessage": "Soy tu concierge IA. Pregúntame sobre el hotel, recomendaciones locales o solicita servicios.",
+    "thinking": "Pensando...",
+    "quickActions": {
+      "roomService": "🛎️ Servicio de Habitación",
+      "roomServiceMsg": "Me gustaría pedir servicio de habitación",
+      "housekeeping": "🧹 Limpieza",
+      "housekeepingMsg": "Necesito servicio de limpieza",
+      "taxi": "🚕 Taxi",
+      "taxiMsg": "¿Puede llamar un taxi para mí?",
+      "recommendations": "📍 Recomendaciones",
+      "recommendationsMsg": "¿Cuáles son los buenos restaurantes cercanos?"
+    }
+  },
+  "recommendations": {
+    "title": "Guía Local",
+    "hiddenGem": "Lugar Secreto",
+    "addToItinerary": "Añadir al Itinerario",
+    "openMaps": "Abrir en Maps",
+    "noResults": "No se encontraron recomendaciones",
+    "all": "Todos"
+  },
+  "requests": {
+    "myRequests": "Mis Solicitudes",
+    "noRequests": "Aún no tienes solicitudes",
+    "staffResponse": "Respuesta del personal:",
+    "staffDeclined": "Solicitud rechazada:",
+    "staffModified": "Propuesta del personal:",
+    "cancelRequest": "Cancelar solicitud",
+    "confirmCancel": "¿Estás seguro de que deseas cancelar esta solicitud?",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "acceptProposal": "Aceptar Propuesta",
+    "rejectProposal": "Rechazar Propuesta",
+    "awaitingResponse": "Esperando tu respuesta"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "in_progress": "En Progreso",
+    "completed": "Completado",
+    "declined": "Rechazado",
+    "modified": "Modificado",
+    "cancelled": "Cancelado",
+    "accepted": "Aceptado",
+    "rejected": "Rechazado",
+    "all": "Todos"
+  },
+  "resolution": {
+    "fulfilled": "Cumplido",
+    "cancelled_by_guest": "Cancelado por ti",
+    "declined_by_staff": "Rechazado por el personal",
+    "accepted_modified": "Aceptado (modificado)",
+    "rejected_modified": "Propuesta rechazada"
+  },
+  "staff": {
+    "dashboard": "Solicitudes de Servicio",
+    "pending": "Pendientes",
+    "inProgress": "En Progreso",
+    "finished": "Finalizadas",
+    "noRequests": "No hay solicitudes en esta categoría",
+    "totalToday": "Hoy",
+    "statusUpdated": "¡Estado actualizado!",
+    "updateError": "Error al actualizar estado",
+    "viewDetails": "Ver Detalles",
+    "requestDetails": "Detalles de la Solicitud",
+    "room": "Habitación",
+    "service": "Servicio",
+    "message": "Mensaje",
+    "requestedAt": "Solicitado el",
+    "guestLanguage": "Idioma del huésped",
+    "decline": "Rechazar",
+    "modify": "Modificar",
+    "markInProgress": "Marcar En Progreso",
+    "markCompleted": "Marcar Completado",
+    "declineReason": "Motivo del rechazo",
+    "modifyProposal": "Proponer alternativa",
+    "send": "Enviar",
+    "modificationSent": "Propuesta enviada al huésped",
+    "declineSent": "Solicitud rechazada"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "explore": "Explorar",
+    "itinerary": "Itinerario",
+    "chat": "Chat"
+  },
+  "landing": {
+    "nav": {
+      "features": "Funcionalidades",
+      "benefits": "Beneficios",
+      "howItWorks": "Cómo Funciona",
+      "pricing": "Precios",
+      "login": "Entrar",
+      "startFree": "Comenzar Gratis"
+    },
+    "hero": {
+      "badge": "Potenciado por Inteligencia Artificial",
+      "title": "El Concierge Digital que tus",
+      "titleHighlight": "huéspedes merecen",
+      "subtitle": "Transforma la experiencia del huésped con un asistente IA 24/7. Atención multilingüe, solicitudes instantáneas y recomendaciones personalizadas — todo vía código QR en la habitación.",
+      "cta": "Agendar Demo Gratis",
+      "ctaSecondary": "Ver Cómo Funciona",
+      "setupInfo": "✓ Setup en 24h ✓ Sin contrato largo ✓ 14 días gratis"
+    },
+    "demo": {
+      "hotelName": "Hotel Paraíso",
+      "room": "Habitación 101",
+      "welcomeMsg": "¡Hola! Soy el concierge virtual del Hotel Paraíso. ¿Cómo puedo ayudarte? 🌴",
+      "guestQuestion": "¿Cuál es la contraseña del WiFi?",
+      "assistantAnswer": "La contraseña del WiFi es: <strong>ParaisoGuest2024</strong> 📶",
+      "whatGuestsCanDo": "Lo que tus huéspedes pueden hacer:",
+      "actions": {
+        "extraTowels": "Pedir toallas extras",
+        "lateCheckout": "Solicitar late checkout",
+        "bookTaxi": "Reservar taxi",
+        "viewMenu": "Ver menú del restaurante",
+        "discoverBeaches": "Descubrir playas locales",
+        "createItinerary": "Crear itinerario de viaje",
+        "breakfastHours": "Consultar horario del desayuno",
+        "roomService": "Pedir room service"
+      }
+    },
+    "socialProof": "Tecnología utilizada por hoteles que priorizan la experiencia del huésped",
+    "features": {
+      "title": "Todo lo que tu hotel necesita en un solo lugar",
+      "subtitle": "Una plataforma completa para modernizar el servicio y deleitar huéspedes",
+      "aiConcierge": {
+        "title": "AI Concierge 24/7",
+        "description": "Asistente virtual inteligente que responde dudas, procesa pedidos y ofrece recomendaciones personalizadas a cualquier hora."
+      },
+      "multilingual": {
+        "title": "Multilingüe Automático",
+        "description": "Atiende huéspedes en Portugués, Inglés, Español y más idiomas automáticamente, sin costo adicional de personal."
+      },
+      "qrCode": {
+        "title": "Acceso vía QR Code",
+        "description": "Los huéspedes escanean el QR en la habitación y acceden instantáneamente. Sin app, sin registro, sin fricción."
+      },
+      "itinerary": {
+        "title": "Planificador de Itinerario",
+        "description": "Los huéspedes crean itinerarios de viaje con tus recomendaciones locales. Más tiempo explorando, menos tiempo investigando."
+      },
+      "localGuide": {
+        "title": "Guía Local Curada",
+        "description": "Muestra los mejores restaurantes, playas y atracciones de la región. Tus 'hidden gems' se convierten en ventaja competitiva."
+      },
+      "instantRequests": {
+        "title": "Solicitudes Instantáneas",
+        "description": "Room service, housekeeping, late checkout - todo en segundos, directo a tu equipo con priorización automática."
+      }
+    },
+    "benefits": {
+      "title": "Resultados reales para tu hotel",
+      "subtitle": "Reduce costos operativos mientras mejoras la satisfacción del huésped",
+      "lessCalls": {
+        "metric": "70%",
+        "title": "Menos Llamadas",
+        "description": "Reduce llamadas a recepción con atención automatizada"
+      },
+      "availability": {
+        "metric": "24/7",
+        "title": "Disponibilidad",
+        "description": "Atención continua sin aumentar personal nocturno"
+      },
+      "satisfaction": {
+        "metric": "+35%",
+        "title": "Satisfacción",
+        "description": "Huéspedes más satisfechos con respuestas instantáneas"
+      },
+      "data": {
+        "metric": "100%",
+        "title": "Datos",
+        "description": "Analytics completo de todas las solicitudes y preferencias"
+      }
+    },
+    "howItWorks": {
+      "title": "Implementación simple y rápida",
+      "subtitle": "En menos de 24 horas tu hotel tiene el concierge digital funcionando",
+      "step1": {
+        "title": "Configura tu Hotel",
+        "description": "Registra información del hotel, servicios ofrecidos y recomendaciones locales en minutos."
+      },
+      "step2": {
+        "title": "Genera los QR Codes",
+        "description": "Crea códigos QR únicos para cada habitación. Imprime y coloca en los cuartos."
+      },
+      "step3": {
+        "title": "Los Huéspedes Escanean",
+        "description": "Al escanear, el huésped accede al concierge digital personalizado de tu hotel."
+      },
+      "step4": {
+        "title": "Monitorea Todo",
+        "description": "Sigue las solicitudes en tiempo real y analiza patrones de comportamiento."
+      }
+    },
+    "pricing": {
+      "title": "Planes para cada tamaño de hotel",
+      "subtitle": "Comienza gratis por 14 días. Sin tarjeta de crédito.",
+      "mostPopular": "Más Popular",
+      "perMonth": "/mes",
+      "starter": {
+        "name": "Starter",
+        "description": "Posadas y hoteles pequeños",
+        "features": ["Hasta 20 habitaciones", "AI Concierge 24/7", "3 idiomas", "QR codes ilimitados", "Soporte por email"]
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "Hoteles de mediano porte",
+        "features": ["Hasta 80 habitaciones", "AI Concierge 24/7", "6 idiomas", "Analytics avanzado", "Integraciones personalizadas", "Soporte prioritario"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Cadenas y resorts",
+        "features": ["Habitaciones ilimitadas", "Multi-propiedad", "API dedicada", "SLA garantizado", "Gerente de éxito", "White-label disponible"]
+      },
+      "startFree": "Comenzar Gratis",
+      "contactSales": "Hablar con Ventas"
+    },
+    "security": {
+      "title": "Seguridad y Privacidad",
+      "description": "Tus datos y los de tus huéspedes están seguros. Utilizamos encriptación de extremo a extremo, servidores en Brasil y cumplimos con la LGPD. Ningún dato personal se almacena sin consentimiento.",
+      "lgpd": "LGPD Compliant",
+      "encryption": "Encriptación E2E",
+      "servers": "Servidores en Brasil"
+    },
+    "cta": {
+      "title": "¿Listo para transformar tu hotel?",
+      "subtitle": "Agenda una demostración gratuita y ve cómo HotelConcierge.ai puede revolucionar la experiencia de tus huéspedes.",
+      "benefit1": "Demo personalizada de 30 minutos",
+      "benefit2": "Sin compromiso",
+      "benefit3": "14 días de prueba gratis después de la demo",
+      "formTitle": "Agendar Demo Gratis",
+      "yourName": "Tu Nombre *",
+      "email": "Email *",
+      "hotelName": "Nombre del Hotel *",
+      "numberOfRooms": "Número de Habitaciones",
+      "message": "Mensaje (opcional)",
+      "messagePlaceholder": "Cuéntanos sobre tu hotel y tus necesidades...",
+      "submit": "Solicitar Demo",
+      "submitting": "Enviando...",
+      "fillRequired": "Complete los campos obligatorios",
+      "successTitle": "¡Solicitud enviada!",
+      "successMessage": "Te contactaremos en 24 horas para agendar tu demo.",
+      "errorMessage": "Error al enviar la solicitud. Intenta de nuevo."
+    },
+    "footer": {
+      "tagline": "El concierge digital que tus huéspedes merecen.",
+      "product": "Producto",
+      "features": "Funcionalidades",
+      "pricing": "Precios",
+      "integrations": "Integraciones",
+      "api": "API",
+      "company": "Empresa",
+      "about": "Sobre",
+      "blog": "Blog",
+      "careers": "Carreras",
+      "contact": "Contacto",
+      "legal": "Legal",
+      "terms": "Términos de Uso",
+      "privacy": "Política de Privacidad",
+      "lgpd": "LGPD",
+      "copyright": "© 2024 HotelConcierge.ai. Todos los derechos reservados."
+    }
+  }
+}

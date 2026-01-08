@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AI Digital Concierge Design System
+   Luxury Minimalism: Sand, Slate, Navy with hotel accent customization
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Warm Sand Background */
+    --background: 40 33% 97%;
+    --foreground: 220 25% 15%;
+
+    /* Card surfaces with subtle warmth */
+    --card: 40 25% 99%;
+    --card-foreground: 220 25% 15%;
+
+    /* Popover matches card */
+    --popover: 40 25% 99%;
+    --popover-foreground: 220 25% 15%;
+
+    /* Navy Primary - Hotel Accent (customizable per hotel) */
+    --primary: 215 50% 23%;
+    --primary-foreground: 40 33% 98%;
+
+    /* Warm Slate Secondary */
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 220 25% 20%;
+
+    /* Muted Slate for subtle elements */
+    --muted: 40 15% 92%;
+    --muted-foreground: 220 10% 50%;
+
+    /* Accent for highlights */
+    --accent: 215 45% 28%;
+    --accent-foreground: 40 33% 98%;
+
+    /* Warm error/destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle borders */
+    --border: 40 15% 88%;
+    --input: 40 20% 92%;
+    --ring: 215 50% 23%;
+
+    --radius: 0.75rem;
+
+    /* Concierge-specific tokens */
+    --concierge-sand: 40 33% 97%;
+    --concierge-sand-dark: 40 25% 90%;
+    --concierge-slate: 220 15% 40%;
+    --concierge-navy: 215 50% 23%;
+    --concierge-navy-light: 215 45% 35%;
+    --concierge-gold: 45 85% 55%;
+    --concierge-success: 152 55% 42%;
+    
+    /* Gradient tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(215 50% 23%) 0%, hsl(215 45% 35%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(40 25% 99%) 0%, hsl(40 20% 96%) 100%);
+    
+    /* Shadow tokens */
+    --shadow-soft: 0 4px 20px -4px hsl(220 25% 15% / 0.08);
+    --shadow-elevated: 0 8px 30px -8px hsl(220 25% 15% / 0.12);
+    --shadow-glow: 0 0 40px -10px hsl(215 50% 23% / 0.25);
+
+    /* Sidebar for admin */
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 215 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 18%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 215 50% 45%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 40 20% 95%;
+
+    --card: 220 22% 12%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 220 22% 12%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 215 45% 55%;
+    --primary-foreground: 220 25% 8%;
+
+    --secondary: 220 18% 18%;
+    --secondary-foreground: 40 20% 90%;
+
+    --muted: 220 18% 16%;
+    --muted-foreground: 40 15% 60%;
+
+    --accent: 215 40% 50%;
+    --accent-foreground: 220 25% 8%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 18% 20%;
+    --input: 220 18% 18%;
+    --ring: 215 45% 55%;
+
+    --sidebar-background: 220 25% 6%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 215 50% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 220 20% 15%;
+    --sidebar-ring: 215 50% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer utilities {
+  /* Glass morphism effect */
+  .glass {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Luxury card shadow */
+  .shadow-luxury {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Glow effect for primary elements */
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Subtle animation for interactive elements */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Service grid item */
+  .service-grid-item {
+    @apply relative overflow-hidden rounded-xl bg-card p-6 transition-all duration-200;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .service-grid-item:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+
+  .service-grid-item:active {
+    transform: translateY(0);
+  }
+
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-200;
+  }
+
+  .fab:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .fab:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Animation keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
