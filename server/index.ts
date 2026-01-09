@@ -1,8 +1,7 @@
-import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { serveStatic } from "hono/bun";
 
 // Import routes
 import { authRoutes, customAuthRoutes } from "./routes/auth";
@@ -39,21 +38,16 @@ app.route("/api/admin", adminRoutes);
 
 // Serve static files in production
 if (isProduction) {
-  // Serve static assets
   app.use("/*", serveStatic({ root: "./dist" }));
-
-  // SPA fallback - serve index.html for all non-API routes
   app.get("*", serveStatic({ path: "./dist/index.html" }));
 }
 
-// Start server
+// Start server with Bun
 const port = Number(process.env.PORT) || 3001;
 
-console.log(`Server starting on port ${port}...`);
+console.log(`🥟 Server running with Bun at http://localhost:${port}`);
 
-serve({
-  fetch: app.fetch,
+export default {
   port,
-});
-
-console.log(`Server running at http://localhost:${port}`);
+  fetch: app.fetch,
+};

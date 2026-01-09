@@ -2,16 +2,24 @@
 # https://render.com/docs/blueprint-spec
 
 services:
-  # Full-stack app (API + Static files served by Hono)
+  # Full-stack app (API + Static files served by Hono with Bun)
   - type: web
     name: hotel-concierge
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build
-    startCommand: node dist/server/index.js
+    buildCommand: |
+      curl -fsSL https://bun.sh/install | bash
+      export PATH="$HOME/.bun/bin:$PATH"
+      bun install
+      bun run build
+    startCommand: |
+      export PATH="$HOME/.bun/bin:$PATH"
+      bun dist/server/index.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3001
       - key: DATABASE_URL
         sync: false # Set in Render dashboard
       - key: OPENAI_API_KEY
