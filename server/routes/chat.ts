@@ -4,8 +4,56 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import OpenAI from "openai";
 import { db } from "../db";
-import { chatSessions, chatMessages, hotels, itineraryItems } from "../db/schema";
+import { chatSessions, chatMessages, hotels, itineraryItems, serviceRequests, serviceTypes } from "../db/schema";
 import { eq } from "drizzle-orm";
+
+// Tool definitions for OpenAI function calling
+const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "create_service_request",
+      description: "Create a service request for the guest. Use this when the guest wants to request any hotel service like room service, housekeeping, taxi, maintenance, late checkout, extra towels, etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          requestType: {
+            type: "string",
+            description: "Type of service being requested (e.g., 'Room Service', 'Housekeeping', 'Taxi', 'Late Checkout', 'Extra Towels', 'Maintenance')"
+          },
+          details: {
+            type: "string",
+            description: "Additional details about the request provided by the guest"
+          }
+        },
+        required: ["requestType"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "add_to_itinerary",
+      description: "Add an activity or place to the guest's travel itinerary. Use when the guest wants to plan or save an activity.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Name of the activity or place" },
+          description: { type: "string", description: "Description of the activity" },
+          location: { type: "string", description: "Location or address" },
+          category: {
+            type: "string",
+            enum: ["restaurant", "attraction", "beach", "nightlife", "shopping", "tour", "other"],
+            description: "Category of the activity"
+          },
+          startTime: { type: "string", description: "Start time in ISO format (optional)" },
+          endTime: { type: "string", description: "End time in ISO format (optional)" }
+        },
+        required: ["title"]
+      }
+    }
+  }
+];
 
 export const chatRoutes = new Hono();
 
@@ -41,6 +89,15 @@ chatRoutes.post("/message", zValidator("json", messageSchema), async (c) => {
       return c.json({ error: "Hotel not found" }, 404);
     }
 
+    // Get available services for this hotel
+    const availableServices = await db.query.serviceTypes.findMany({
+      where: eq(serviceTypes.hotelId, hotelId),
+      orderBy: (serviceTypes, { asc }) => [asc(serviceTypes.sortOrder)],
+    });
+
+    // Filter only active services
+    const activeServices = availableServices.filter(s => s.isActive);
+
     // Get the latest user message
     const lastUserMessage = incomingMessages.filter((m) => m.role === "user").pop();
     if (lastUserMessage) {
@@ -52,8 +109,8 @@ chatRoutes.post("/message", zValidator("json", messageSchema), async (c) => {
       });
     }
 
-    // Build system prompt
-    const systemPrompt = buildSystemPrompt(hotel, guestLanguage, roomNumber);
+    // Build system prompt with available services
+    const systemPrompt = buildSystemPrompt(hotel, guestLanguage, roomNumber, activeServices);
 
     // Create OpenAI messages
     const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -69,22 +126,47 @@ chatRoutes.post("/message", zValidator("json", messageSchema), async (c) => {
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: openaiMessages,
+        tools,
+        tool_choice: "auto",
         stream: true,
         max_tokens: 1000,
       });
 
       let fullResponse = "";
+      let toolCallsAccumulator: { id: string; name: string; arguments: string }[] = [];
 
       for await (const chunk of response) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        const finishReason = chunk.choices[0]?.finish_reason;
+        const choice = chunk.choices[0];
+        const content = choice?.delta?.content || "";
+        const finishReason = choice?.finish_reason;
+        const toolCallsDelta = choice?.delta?.tool_calls;
+
+        // Accumulate tool calls if present
+        if (toolCallsDelta) {
+          for (const tc of toolCallsDelta) {
+            if (tc.index !== undefined) {
+              if (!toolCallsAccumulator[tc.index]) {
+                toolCallsAccumulator[tc.index] = { id: tc.id || "", name: "", arguments: "" };
+              }
+              if (tc.function?.name) {
+                toolCallsAccumulator[tc.index].name = tc.function.name;
+              }
+              if (tc.function?.arguments) {
+                toolCallsAccumulator[tc.index].arguments += tc.function.arguments;
+              }
+            }
+          }
+        }
 
         // Send in OpenAI-compatible format for frontend parsing
         await stream.writeSSE({
           data: JSON.stringify({
             choices: [
               {
-                delta: { content },
+                delta: {
+                  content,
+                  tool_calls: toolCallsDelta,
+                },
                 finish_reason: finishReason,
               },
             ],
@@ -136,6 +218,70 @@ chatRoutes.post("/session", async (c) => {
   }
 });
 
+// Execute tool call (called by frontend when AI requests a tool)
+chatRoutes.post("/execute-tool", async (c) => {
+  const { toolName, arguments: args, sessionId, hotelId, roomId, guestLanguage } = await c.req.json();
+
+  try {
+    if (toolName === "create_service_request") {
+      // Create service request in database
+      const [request] = await db.insert(serviceRequests).values({
+        hotelId,
+        roomId: roomId || null,
+        requestType: args.requestType,
+        details: args.details || null,
+        guestLanguage: guestLanguage || "en",
+        status: "pending",
+      }).returning();
+
+      // Generate success message based on language
+      const messages: Record<string, string> = {
+        pt: `Solicitação de ${args.requestType} criada com sucesso! Nossa equipe foi notificada.`,
+        es: `¡Solicitud de ${args.requestType} creada con éxito! Nuestro equipo ha sido notificado.`,
+        en: `${args.requestType} request created successfully! Our team has been notified.`,
+      };
+
+      return c.json({
+        success: true,
+        message: messages[guestLanguage] || messages.en,
+        requestId: request.id
+      });
+    }
+
+    if (toolName === "add_to_itinerary") {
+      // Create itinerary item
+      const [item] = await db.insert(itineraryItems).values({
+        sessionId,
+        hotelId,
+        title: args.title,
+        description: args.description || null,
+        location: args.location || null,
+        category: args.category || "other",
+        startTime: args.startTime ? new Date(args.startTime) : null,
+        endTime: args.endTime ? new Date(args.endTime) : null,
+      }).returning();
+
+      // Generate success message based on language
+      const messages: Record<string, string> = {
+        pt: `"${args.title}" adicionado ao seu itinerário!`,
+        es: `"${args.title}" añadido a tu itinerario!`,
+        en: `"${args.title}" added to your itinerary!`,
+      };
+
+      return c.json({
+        success: true,
+        message: messages[guestLanguage] || messages.en,
+        itemId: item.id
+      });
+    }
+
+    return c.json({ success: false, message: "Unknown tool" }, 400);
+  } catch (error) {
+    console.error("Error executing tool:", error);
+    return c.json({ success: false, message: "Failed to execute action" }, 500);
+  }
+});
+
 // Get chat history for a session
 chatRoutes.get("/history/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
@@ -157,16 +303,43 @@ chatRoutes.get("/history/:sessionId", async (c) => {
 function buildSystemPrompt(
   hotel: typeof hotels.$inferSelect,
   language: string,
-  roomNumber?: string
+  roomNumber?: string,
+  availableServices: typeof serviceTypes.$inferSelect[] = []
 ): string {
-  const toneDescriptions: Record<string, string> = {
-    relaxed_resort: "friendly, warm, and casual like a beach resort concierge",
-    formal_business: "professional, efficient, and courteous like a luxury business hotel",
-    boutique_chic: "stylish, personalized, and attentive like a boutique hotel",
-    family_friendly: "warm, helpful, and accommodating like a family resort",
+  // Detailed personality descriptions for each tone
+  const toneDescriptions: Record<string, { personality: string; style: string; examples: string }> = {
+    relaxed_resort: {
+      personality: "You are a friendly, warm, and laid-back beach resort concierge. Think tropical vibes, flip-flops, and sunset cocktails.",
+      style: "Use casual, warm language. Feel free to use light humor. Be enthusiastic about outdoor activities, beach recommendations, and relaxation. Use expressions like 'No worries!', 'Enjoy!', 'Have a great time!'",
+      examples: "Instead of 'Certainly, sir' say 'Sure thing! 🌴'. Instead of 'The restaurant opens at 7' say 'Breakfast starts at 7 - perfect time to catch the sunrise! ☀️'"
+    },
+    formal_business: {
+      personality: "You are a polished, efficient, and highly professional business hotel concierge. Think executive lounges, pressed suits, and attention to detail.",
+      style: "Use formal, precise language. Be concise and efficient. Focus on time, convenience, and professionalism. Address guests with respect. Avoid emojis and casual expressions.",
+      examples: "Use 'Certainly', 'Of course', 'I shall arrange that immediately'. Be direct: 'Your request has been submitted. Expected response time: 15 minutes.'"
+    },
+    boutique_chic: {
+      personality: "You are a stylish, sophisticated, and personalized boutique hotel concierge. Think curated experiences, local artisan recommendations, and Instagram-worthy spots.",
+      style: "Use elegant but approachable language. Focus on unique experiences, local hidden gems, and personalized touches. Show genuine interest in making their stay special and memorable.",
+      examples: "Recommend 'a charming little café the locals love' rather than 'a nearby restaurant'. Mention 'curated experiences' and 'exclusive recommendations'."
+    },
+    family_friendly: {
+      personality: "You are a warm, patient, and helpful family resort concierge. Think kids' activities, family adventures, and making parents' lives easier.",
+      style: "Use friendly, reassuring language. Be patient and understanding. Proactively mention family-friendly options, kids' amenities, and activities for all ages. Be helpful about practical family needs.",
+      examples: "Mention 'The kids will love...' or 'Great for the whole family!'. Proactively offer: 'Would you like me to check if we have a high chair available?' or 'Our pool has a shallow area perfect for little ones!'"
+    }
   };
 
-  const tone = toneDescriptions[hotel.toneOfVoice || "relaxed_resort"];
+  const selectedTone = toneDescriptions[hotel.toneOfVoice || "relaxed_resort"];
+  const toneInstructions = `
+PERSONALITY & COMMUNICATION STYLE:
+${selectedTone.personality}
+
+Style guidelines: ${selectedTone.style}
+
+Examples: ${selectedTone.examples}
+
+IMPORTANT: Maintain this personality consistently throughout the conversation. Your tone should reflect the hotel's brand.`;
   const langInstruction =
     language === "pt"
       ? "Responda sempre em Português do Brasil."
@@ -176,27 +349,51 @@ function buildSystemPrompt(
 
   const roomContext = roomNumber ? `\nThe guest is in room ${roomNumber}.` : "";
 
-  return `You are the AI concierge for ${hotel.name}, a hotel in ${hotel.city}, ${hotel.country}.
+  // Build list of available services
+  const servicesList = availableServices.map(s => {
+    const name = language === "pt" && s.namePt ? s.namePt : s.name;
+    return `- ${name}`;
+  }).join("\n");
 
-Your personality: ${tone}
+  const noServicesMessage = language === "pt"
+    ? "Nenhum serviço configurado. Entre em contato com a recepção."
+    : language === "es"
+      ? "Ningún servicio configurado. Contacte la recepción."
+      : "No services configured. Please contact the front desk.";
+
+  const servicesSection = availableServices.length > 0
+    ? `AVAILABLE SERVICES (ONLY create requests for these):
+${servicesList}`
+    : noServicesMessage;
+
+  return `You are the AI concierge for ${hotel.name}, a hotel located in ${hotel.city}, ${hotel.country}.
 ${roomContext}
 
-Hotel Information:
+${toneInstructions}
+
+HOTEL INFORMATION:
 - WiFi Password: ${hotel.wifiPassword || "Ask front desk"}
 - Breakfast Hours: ${hotel.breakfastHours || "7:00 AM - 10:00 AM"}
 - Checkout Time: ${hotel.checkoutTime || "12:00 PM"}
-- Contact: ${hotel.whatsappNumber}
+- WhatsApp Contact: ${hotel.whatsappNumber || "Contact front desk"}
 
-${langInstruction}
+LANGUAGE: ${langInstruction}
 
-You can help guests with:
-- Hotel services and amenities
-- Local recommendations
-- Room service orders
-- Travel planning
-- General questions about the area
+${servicesSection}
 
-Be helpful, concise, and maintain the hotel's service standards.`;
+CRITICAL INSTRUCTIONS FOR SERVICE REQUESTS:
+1. You have a tool called "create_service_request" to create service requests for guests.
+2. You can ONLY create requests for services listed above in "AVAILABLE SERVICES".
+3. When a guest requests a service that IS in the list, use the create_service_request tool IMMEDIATELY.
+4. When a guest requests something NOT in the list, politely explain that this specific service is not available and suggest alternatives from the list or recommend contacting the front desk/reception.
+5. Use the EXACT service name from the list as the requestType parameter.
+
+You also have "add_to_itinerary" tool to help guests plan their trip by saving activities and places to their itinerary.
+
+FINAL REMINDERS:
+- Always maintain your personality/tone as defined above
+- Only offer services the hotel actually provides
+- Be helpful but stay within your role as this hotel's concierge`;
 }
 
 // ============================================================================
