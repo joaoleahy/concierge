@@ -45,12 +45,18 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
     try {
       if (room.id) {
         await api.patch(`/api/admin/rooms/${room.id}`, {
-          roomNumber: room.room_number,
-          roomType: room.room_type,
+          roomNumber: room.roomNumber,
+          roomType: room.roomType,
           floor: room.floor,
         });
       } else {
-        await api.post("/api/admin/rooms", { ...room, hotelId });
+        await api.post("/api/admin/rooms", {
+          hotelId,
+          roomNumber: room.roomNumber,
+          roomType: room.roomType,
+          floor: room.floor,
+          qrCode: room.qrCode,
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       setEditing(null);
@@ -88,9 +94,9 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
       toast.error("Configure o WhatsApp do hotel primeiro");
       return;
     }
-    
-    const message = `🏨 Bem-vindo ao quarto ${room.room_number}!\n\n🔐 Seu PIN de acesso é: *${room.access_pin}*\n\n📱 Use este PIN para acessar os serviços do hotel pelo link:\n${window.location.origin}/?room=${room.qr_code}\n\nBoa estadia!`;
-    
+
+    const message = `🏨 Bem-vindo ao quarto ${room.roomNumber}!\n\n🔐 Seu PIN de acesso é: *${room.accessPin}*\n\n📱 Use este PIN para acessar os serviços do hotel pelo link:\n${window.location.origin}/?room=${room.qrCode}\n\nBoa estadia!`;
+
     // Copy message to clipboard for easy sharing
     navigator.clipboard.writeText(message);
     toast.success("Mensagem copiada! Cole no WhatsApp para enviar ao hóspede.");
@@ -103,9 +109,8 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
       const data = await api.post<{ pin: string }>(`/api/admin/rooms/${roomId}/regenerate-pin`, {});
       return data.pin;
     },
-    onSuccess: (newPin) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
-      toast.success(`Novo PIN: ${newPin}`);
       setRegeneratingPinId(null);
     },
     onError: () => {
@@ -143,9 +148,9 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-lg font-bold">{room.room_number}</p>
+                      <p className="text-lg font-bold">{room.roomNumber}</p>
                       <p className="text-sm text-muted-foreground">
-                        {roomTypes.find(t => t.value === room.room_type)?.label || room.room_type}
+                        {roomTypes.find(t => t.value === room.roomType)?.label || room.roomType}
                         {room.floor && ` • ${room.floor}º andar`}
                       </p>
                     </div>
@@ -164,13 +169,13 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
                     <Key className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">PIN:</span>
                     <Badge variant="secondary" className="font-mono text-lg tracking-wider">
-                      {room.access_pin || "----"}
+                      {room.accessPin || "----"}
                     </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-7 w-7" 
-                      onClick={() => copyPin(room.access_pin)}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => copyPin(room.accessPin)}
                       title="Copiar PIN"
                     >
                       <Copy className="h-3 w-3" />
@@ -191,9 +196,9 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
                   <div className="flex items-center gap-2 mt-2">
                     <QrCode className="h-4 w-4 text-muted-foreground" />
                     <code className="text-xs bg-background px-2 py-1 rounded flex-1 truncate">
-                      {room.qr_code}
+                      {room.qrCode}
                     </code>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyQrLink(room.qr_code)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyQrLink(room.qrCode)}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
@@ -236,7 +241,7 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
             <DialogTitle>{editing?.id ? "Editar" : "Novo"} Quarto</DialogTitle>
           </DialogHeader>
           <RoomForm
-            room={editing || { room_number: "", room_type: "standard", floor: null, qr_code: "" }}
+            room={editing || { roomNumber: "", roomType: "standard", floor: null, qrCode: "" }}
             onSave={handleSave}
             onCancel={() => { setEditing(null); setIsAdding(false); }}
           />
@@ -259,7 +264,7 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
 function RoomForm({ room, onSave, onCancel }: { room: any; onSave: (r: any) => void; onCancel: () => void }) {
   const [data, setData] = useState({
     ...room,
-    qr_code: room.qr_code || `room-${Date.now()}`,
+    qrCode: room.qrCode || `room-${Date.now()}`,
   });
 
   return (
@@ -267,11 +272,11 @@ function RoomForm({ room, onSave, onCancel }: { room: any; onSave: (r: any) => v
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Número do Quarto</Label>
-          <Input value={data.room_number} onChange={(e) => setData({ ...data, room_number: e.target.value })} placeholder="101" />
+          <Input value={data.roomNumber} onChange={(e) => setData({ ...data, roomNumber: e.target.value })} placeholder="101" />
         </div>
         <div className="space-y-2">
           <Label>Tipo</Label>
-          <Select value={data.room_type} onValueChange={(v) => setData({ ...data, room_type: v })}>
+          <Select value={data.roomType} onValueChange={(v) => setData({ ...data, roomType: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {roomTypes.map((t) => (
@@ -289,7 +294,7 @@ function RoomForm({ room, onSave, onCancel }: { room: any; onSave: (r: any) => v
         </div>
         <div className="space-y-2">
           <Label>QR Code</Label>
-          <Input value={data.qr_code} onChange={(e) => setData({ ...data, qr_code: e.target.value })} placeholder="Identificador único" />
+          <Input value={data.qrCode} onChange={(e) => setData({ ...data, qrCode: e.target.value })} placeholder="Identificador único" />
         </div>
       </div>
 
@@ -303,10 +308,10 @@ function RoomForm({ room, onSave, onCancel }: { room: any; onSave: (r: any) => v
 
 function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
   const qrRef = useRef<HTMLDivElement>(null);
-  
+
   if (!room) return null;
 
-  const guestUrl = `${window.location.origin}/?room=${room.qr_code}`;
+  const guestUrl = `${window.location.origin}/?room=${room.qrCode}`;
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(guestUrl)}`;
 
   const handlePrint = () => {
@@ -316,7 +321,7 @@ function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>QR Code - Quarto ${room.room_number}</title>
+          <title>QR Code - Quarto ${room.roomNumber}</title>
           <style>
             body {
               display: flex;
@@ -353,14 +358,14 @@ function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
         <body>
           <div class="container">
             <h1>🏨 Bem-vindo!</h1>
-            <div class="room-number">Quarto ${room.room_number}</div>
+            <div class="room-number">Quarto ${room.roomNumber}</div>
             <div class="qr-code">
               <img src="${qrApiUrl}" alt="QR Code" />
             </div>
             <p>Escaneie o QR Code para acessar os serviços do hotel</p>
             <div class="pin-section">
               <div class="pin-label">Seu PIN de acesso:</div>
-              <div class="pin-value">${room.access_pin}</div>
+              <div class="pin-value">${room.accessPin}</div>
             </div>
             <p class="instructions">Use este PIN na primeira vez que acessar</p>
           </div>
@@ -381,7 +386,7 @@ function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `qrcode-quarto-${room.room_number}.png`;
+      a.download = `qrcode-quarto-${room.roomNumber}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -395,10 +400,10 @@ function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
   return (
     <div className="space-y-4">
       <div ref={qrRef} className="text-center p-4 border rounded-lg">
-        <p className="text-3xl font-bold mb-4">Quarto {room.room_number}</p>
-        <img 
-          src={qrApiUrl} 
-          alt="QR Code" 
+        <p className="text-3xl font-bold mb-4">Quarto {room.roomNumber}</p>
+        <img
+          src={qrApiUrl}
+          alt="QR Code"
           className="mx-auto w-48 h-48"
         />
         <p className="text-sm text-muted-foreground mt-4">
@@ -406,7 +411,7 @@ function RoomQRCode({ room, onClose }: { room: any; onClose: () => void }) {
         </p>
         <div className="mt-4 p-3 bg-muted rounded-lg">
           <p className="text-xs text-muted-foreground">PIN de Acesso:</p>
-          <p className="text-2xl font-mono font-bold tracking-widest">{room.access_pin}</p>
+          <p className="text-2xl font-mono font-bold tracking-widest">{room.accessPin}</p>
         </div>
       </div>
 

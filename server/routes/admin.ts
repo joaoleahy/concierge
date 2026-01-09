@@ -172,6 +172,31 @@ adminRoutes.delete("/rooms/:id", async (c) => {
   }
 });
 
+// Regenerate room PIN
+adminRoutes.post("/rooms/:id/regenerate-pin", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    // Generate new 4-digit PIN
+    const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+
+    const [updated] = await db
+      .update(rooms)
+      .set({ accessPin: newPin, updatedAt: new Date() })
+      .where(eq(rooms.id, id))
+      .returning();
+
+    if (!updated) {
+      return c.json({ error: "Room not found" }, 404);
+    }
+
+    return c.json({ pin: updated.accessPin });
+  } catch (error) {
+    console.error("Error regenerating PIN:", error);
+    return c.json({ error: "Failed to regenerate PIN" }, 500);
+  }
+});
+
 // ============================================================================
 // SERVICE TYPES
 // ============================================================================

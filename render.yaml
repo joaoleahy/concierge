@@ -2,36 +2,27 @@
 # https://render.com/docs/blueprint-spec
 
 services:
-  # Backend API (Hono)
+  # Full-stack app (API + Static files served by Hono)
   - type: web
-    name: hotel-concierge-api
+    name: hotel-concierge
     runtime: node
-    buildCommand: npm ci && npm run build:server
+    plan: free
+    buildCommand: npm ci && npm run build
     startCommand: node dist/server/index.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false # Set in Render dashboard (Neon connection string)
+        sync: false # Set in Render dashboard
       - key: OPENAI_API_KEY
         sync: false
       - key: RESEND_API_KEY
         sync: false
-    healthCheckPath: /health
-
-  # Frontend (Vite Static Site)
-  - type: web
-    name: hotel-concierge-web
-    runtime: static
-    buildCommand: npm ci && npm run build
-    staticPublishPath: ./dist
-    envVars:
-      - key: VITE_API_URL
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
         fromService:
-          name: hotel-concierge-api
+          name: hotel-concierge
           type: web
-          envVarKey: RENDER_EXTERNAL_URL
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+          property: host
+    healthCheckPath: /health
