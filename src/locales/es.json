@@ -155,6 +155,7 @@
     "totalToday": "Hoy",
     "statusUpdated": "¡Estado actualizado!",
     "updateError": "Error al actualizar estado",
+    "notificationSound": "Sonido de notificación",
     "viewDetails": "Ver Detalles",
     "requestDetails": "Detalles de la Solicitud",
     "room": "Habitación",
@@ -181,6 +182,7 @@
   },
   "admin": {
     "panel": "Panel Admin",
+    "configureHotel": "Configurar Hotel",
     "tabs": {
       "hotel": "Hotel",
       "services": "Servicios",

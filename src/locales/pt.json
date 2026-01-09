@@ -163,6 +163,7 @@
     "totalToday": "Hoje",
     "statusUpdated": "Status atualizado!",
     "updateError": "Falha ao atualizar status",
+    "notificationSound": "Som de notificação",
     "viewDetails": "Ver Detalhes",
     "requestDetails": "Detalhes da Solicitação",
     "room": "Quarto",
@@ -245,6 +246,7 @@
   },
   "admin": {
     "panel": "Painel Administrativo",
+    "configureHotel": "Configurar Hotel",
     "tabs": {
       "hotel": "Hotel",
       "services": "Serviços",

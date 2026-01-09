@@ -163,6 +163,7 @@
     "totalToday": "Today",
     "statusUpdated": "Status updated!",
     "updateError": "Failed to update status",
+    "notificationSound": "Notification sound",
     "viewDetails": "View Details",
     "requestDetails": "Request Details",
     "room": "Room",
@@ -245,6 +246,7 @@
   },
   "admin": {
     "panel": "Admin Panel",
+    "configureHotel": "Configure Hotel",
     "tabs": {
       "hotel": "Hotel",
       "services": "Services",

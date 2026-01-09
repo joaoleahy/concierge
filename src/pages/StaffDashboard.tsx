@@ -8,7 +8,6 @@ import { ptBR, es, enUS } from "date-fns/locale";
 import { useUserHotel } from "@/hooks/useUserHotel";
 import { useHotelById } from "@/hooks/useHotel";
 import { useServiceRequests, useRealtimeServiceRequests, useUpdateServiceRequest, ServiceRequest } from "@/hooks/useRealtimeServiceRequests";
-import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,8 +36,8 @@ const statusLabels: Record<string, Record<string, string>> = {
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { language } = useLanguage();
+  const { t, i18n } = useTranslation();
+  const language = i18n.language.split("-")[0]; // "pt-BR" -> "pt"
   const { signOut } = useAuth();
   
   // Get hotel from user's roles
@@ -99,21 +98,9 @@ export default function StaffDashboard() {
   const handleStatusChange = async (request: ServiceRequest, newStatus: string, staffResponse?: string) => {
     try {
       await updateStatus(request.id, request.hotel_id, newStatus, staffResponse);
-      toast.success(
-        language === "pt" 
-          ? "Status atualizado!" 
-          : language === "es" 
-            ? "¡Estado actualizado!" 
-            : "Status updated!"
-      );
+      toast.success(t("staff.statusUpdated"));
     } catch (error) {
-      toast.error(
-        language === "pt" 
-          ? "Erro ao atualizar status" 
-          : language === "es" 
-            ? "Error al actualizar estado" 
-            : "Failed to update status"
-      );
+      toast.error(t("staff.updateError"));
     }
   };
 
@@ -138,7 +125,7 @@ export default function StaffDashboard() {
             <div>
               <h1 className="text-xl font-bold">{hotelData?.name || hotel?.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {language === "pt" ? "Painel de Solicitações" : language === "es" ? "Panel de Solicitudes" : "Service Requests"}
+                {t("staff.dashboard")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -151,7 +138,7 @@ export default function StaffDashboard() {
                 <Switch
                   checked={soundEnabled}
                   onCheckedChange={handleSoundToggle}
-                  aria-label={language === "pt" ? "Som de notificação" : language === "es" ? "Sonido de notificación" : "Notification sound"}
+                  aria-label={t("staff.notificationSound")}
                 />
               </div>
               <Button variant="outline" size="icon" onClick={() => refetch()}>
@@ -181,7 +168,7 @@ export default function StaffDashboard() {
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
               <p className="text-xs text-muted-foreground">
-                {language === "pt" ? "Pendentes" : language === "es" ? "Pendientes" : "Pending"}
+                {t("staff.pending")}
               </p>
             </CardContent>
           </Card>
@@ -189,7 +176,7 @@ export default function StaffDashboard() {
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-600">{inProgressCount}</p>
               <p className="text-xs text-muted-foreground">
-                {language === "pt" ? "Em Andamento" : language === "es" ? "En Progreso" : "In Progress"}
+                {t("staff.inProgress")}
               </p>
             </CardContent>
           </Card>
@@ -197,7 +184,7 @@ export default function StaffDashboard() {
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-muted-foreground">{requests.length}</p>
               <p className="text-xs text-muted-foreground">
-                {language === "pt" ? "Total Hoje" : language === "es" ? "Total Hoy" : "Today"}
+                {t("staff.totalToday")}
               </p>
             </CardContent>
           </Card>
@@ -207,7 +194,7 @@ export default function StaffDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="pending" className="relative">
-              {language === "pt" ? "Pendentes" : language === "es" ? "Pendientes" : "Pending"}
+              {t("staff.pending")}
               {pendingCount > 0 && (
                 <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
                   {pendingCount}
@@ -215,10 +202,10 @@ export default function StaffDashboard() {
               )}
             </TabsTrigger>
             <TabsTrigger value="in_progress">
-              {language === "pt" ? "Em Andamento" : language === "es" ? "En Progreso" : "In Progress"}
+              {t("staff.inProgress")}
             </TabsTrigger>
             <TabsTrigger value="completed">
-              {language === "pt" ? "Finalizados" : language === "es" ? "Finalizados" : "Finished"}
+              {t("staff.finished")}
             </TabsTrigger>
           </TabsList>
 
@@ -230,11 +217,7 @@ export default function StaffDashboard() {
             ) : filteredRequests.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
-                  {language === "pt" 
-                    ? "Nenhuma solicitação nesta categoria" 
-                    : language === "es" 
-                      ? "No hay solicitudes en esta categoría" 
-                      : "No requests in this category"}
+                  {t("staff.noRequests")}
                 </CardContent>
               </Card>
             ) : (
