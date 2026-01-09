@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, Save, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,12 +27,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
     queryKey: ["menu-categories", hotelId],
     queryFn: async () => {
       if (!hotelId) return [];
-      const { data, error } = await supabase
-        .from("menu_categories")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("sort_order");
-      if (error) throw error;
+      const data = await api.get<any[]>(`/api/admin/menu/categories?hotelId=${hotelId}`);
       return data;
     },
     enabled: !!hotelId,
@@ -42,12 +37,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
     queryKey: ["menu-items", hotelId],
     queryFn: async () => {
       if (!hotelId) return [];
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("sort_order");
-      if (error) throw error;
+      const data = await api.get<any[]>(`/api/admin/menu/items?hotelId=${hotelId}`);
       return data;
     },
     enabled: !!hotelId,
@@ -56,16 +46,13 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
   const handleSaveCategory = async (category: any) => {
     try {
       if (category.id) {
-        const { error } = await supabase
-          .from("menu_categories")
-          .update({ name: category.name, name_pt: category.name_pt, icon: category.icon })
-          .eq("id", category.id);
-        if (error) throw error;
+        await api.patch(`/api/admin/menu/categories/${category.id}`, {
+          name: category.name,
+          namePt: category.name_pt,
+          icon: category.icon,
+        });
       } else {
-        const { error } = await supabase
-          .from("menu_categories")
-          .insert({ ...category, hotel_id: hotelId });
-        if (error) throw error;
+        await api.post("/api/admin/menu/categories", { ...category, hotelId });
       }
       queryClient.invalidateQueries({ queryKey: ["menu-categories"] });
       setEditingCategory(null);
@@ -79,8 +66,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
   const handleDeleteCategory = async (id: string) => {
     if (!confirm("Excluir esta categoria e todos os itens?")) return;
     try {
-      const { error } = await supabase.from("menu_categories").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/api/admin/menu/categories/${id}`);
       queryClient.invalidateQueries({ queryKey: ["menu-categories"] });
       toast.success("Categoria excluída!");
     } catch (error) {
@@ -91,23 +77,16 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
   const handleSaveItem = async (item: any) => {
     try {
       if (item.id) {
-        const { error } = await supabase
-          .from("menu_items")
-          .update({
-            name: item.name,
-            name_pt: item.name_pt,
-            description: item.description,
-            price: item.price,
-            is_available: item.is_available,
-            category_id: item.category_id,
-          })
-          .eq("id", item.id);
-        if (error) throw error;
+        await api.patch(`/api/admin/menu/items/${item.id}`, {
+          name: item.name,
+          namePt: item.name_pt,
+          description: item.description,
+          price: item.price,
+          isAvailable: item.is_available,
+          categoryId: item.category_id,
+        });
       } else {
-        const { error } = await supabase
-          .from("menu_items")
-          .insert({ ...item, hotel_id: hotelId });
-        if (error) throw error;
+        await api.post("/api/admin/menu/items", { ...item, hotelId });
       }
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       setEditingItem(null);
@@ -121,8 +100,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
   const handleDeleteItem = async (id: string) => {
     if (!confirm("Excluir este item?")) return;
     try {
-      const { error } = await supabase.from("menu_items").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/api/admin/menu/items/${id}`);
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       toast.success("Item excluído!");
     } catch (error) {

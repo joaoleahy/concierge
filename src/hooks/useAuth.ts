@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
+import { useSession, signIn, signUp, signOut } from "@/lib/auth-client";
+import { api } from "@/lib/api/client";
 
 export interface UserProfile {
   id: string;
-  user_id: string;
   email: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
+  name: string | null;
+  image: string | null;
 }
 
 export interface UserRole {
@@ -17,69 +15,75 @@ export interface UserRole {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, isPending: loading } = useSession();
 
-  useEffect(() => {
-    // Set up auth state listener BEFORE getting session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+  const user = session?.user
+    ? {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
       }
-    );
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/admin`,
-      },
-    });
-    return { error };
-  };
+    : null;
 
   const signInWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const result = await signIn.email({ email, password });
+      if (result.error) {
+        return { error: { message: result.error.message } };
+      }
+      return { error: null };
+    } catch (err) {
+      return { error: { message: "Failed to sign in" } };
+    }
   };
 
   const signUpWithEmail = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/admin`,
-        data: {
-          full_name: displayName,
-          name: displayName,
-        },
-      },
-    });
-    return { error };
+    try {
+      const result = await signUp.email({
+        email,
+        password,
+        name: displayName || email.split("@")[0],
+      });
+      if (result.error) {
+        return { error: { message: result.error.message } };
+      }
+      return { error: null };
+    } catch (err) {
+      return { error: { message: "Failed to sign up" } };
+    }
   };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+  const signInWithGoogle = async () => {
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}/admin`,
+      });
+      return { error: null };
+    } catch (err) {
+      return { error: { message: "Failed to sign in with Google" } };
+    }
   };
 
-  return { user, session, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut };
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      return { error: null };
+    } catch (err) {
+      return { error: { message: "Failed to sign out" } };
+    }
+  };
+
+  return {
+    user,
+    session,
+    loading,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut: handleSignOut,
+  };
 }
 
 export function useUserRoles(userId: string | undefined, hotelId: string | null) {
@@ -95,22 +99,18 @@ export function useUserRoles(userId: string | undefined, hotelId: string | null)
     }
 
     const fetchRoles = async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("hotel_id, role")
-        .eq("user_id", userId)
-        .eq("hotel_id", hotelId);
-
-      if (error) {
+      try {
+        const data = await api.get<{ roles: UserRole[]; isAdmin: boolean; isStaff: boolean }>(
+          `/api/custom-auth/roles?userId=${userId}&hotelId=${hotelId}`
+        );
+        setRoles(data.roles || []);
+        setIsAdmin(data.isAdmin || false);
+        setIsStaff(data.isStaff || false);
+      } catch (error) {
         console.error("Error fetching roles:", error);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setRoles(data || []);
-      setIsAdmin(data?.some((r) => r.role === "admin") || false);
-      setIsStaff(data?.some((r) => r.role === "staff" || r.role === "admin") || false);
-      setLoading(false);
     };
 
     fetchRoles();
@@ -120,32 +120,23 @@ export function useUserRoles(userId: string | undefined, hotelId: string | null)
 }
 
 export function useProfile(userId: string | undefined) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) {
+    if (session?.user) {
       setLoading(false);
-      return;
     }
+  }, [session]);
 
-    const fetchProfile = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-      } else {
-        setProfile(data);
+  const profile: UserProfile | null = session?.user
+    ? {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
       }
-      setLoading(false);
-    };
-
-    fetchProfile();
-  }, [userId]);
+    : null;
 
   return { profile, loading };
 }

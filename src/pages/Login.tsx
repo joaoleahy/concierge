@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Hotel, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,13 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/admin";
-  const inviteToken = searchParams.get("invite");
+  const search = useSearch({ strict: false }) as { redirect?: string; invite?: string };
+  const redirect = search.redirect || "/admin";
+  const inviteToken = search.invite;
   const { user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
   
   const [email, setEmail] = useState("");
@@ -30,21 +30,22 @@ export default function Login() {
   useEffect(() => {
     const acceptInvitation = async () => {
       if (user && inviteToken) {
-        const { data, error } = await supabase.rpc("accept_staff_invitation", {
-          invitation_token: inviteToken,
-        });
-        
-        const result = data as { success?: boolean; message?: string; hotel_id?: string; error?: string } | null;
-        
-        if (error) {
+        try {
+          const result = await api.post<{ success?: boolean; message?: string; hotel_id?: string; error?: string }>(
+            "/api/admin/invitations/accept",
+            { token: inviteToken }
+          );
+
+          if (result?.success) {
+            toast.success(result.message || "Convite aceito com sucesso!");
+            navigate({ to: "/admin", search: { qr: result.hotel_id } });
+            return;
+          } else if (result?.error) {
+            toast.error(result.message || "Erro ao aceitar convite");
+          }
+        } catch (error) {
           console.error("Error accepting invitation:", error);
           toast.error("Erro ao aceitar convite");
-        } else if (result?.success) {
-          toast.success(result.message || "Convite aceito com sucesso!");
-          navigate(`/admin?qr=${result.hotel_id}`);
-          return;
-        } else if (result?.error) {
-          toast.error(result.message || "Erro ao aceitar convite");
         }
       }
     };
@@ -53,7 +54,7 @@ export default function Login() {
       if (inviteToken) {
         acceptInvitation();
       } else {
-        navigate(redirect);
+        navigate({ to: redirect as "/" });
       }
     }
   }, [user, loading, navigate, redirect, inviteToken]);
@@ -110,16 +111,17 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login?reset=true`,
-    });
-    setIsSubmitting(false);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await api.post("/api/auth/forget-password", {
+        email,
+        redirectTo: `${window.location.origin}/login?reset=true`,
+      });
       setResetEmailSent(true);
       toast.success("Email de recuperação enviado!");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao enviar email");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

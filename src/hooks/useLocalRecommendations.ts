@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export interface LocalRecommendation {
   id: string;
@@ -23,21 +23,14 @@ export function useLocalRecommendations(hotelId: string | null, category?: strin
     queryKey: ["local-recommendations", hotelId, category],
     queryFn: async () => {
       if (!hotelId) return [];
-      
-      let query = supabase
-        .from("local_recommendations")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
 
+      let url = `/api/admin/recommendations?hotelId=${hotelId}`;
       if (category) {
-        query = query.eq("category", category);
+        url += `&category=${category}`;
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as LocalRecommendation[];
+      const data = await api.get<LocalRecommendation[]>(url);
+      return data;
     },
     enabled: !!hotelId,
   });

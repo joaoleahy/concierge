@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export interface ItineraryItem {
   id: string;
@@ -22,15 +22,9 @@ export function useItinerary(sessionId: string | null) {
     queryKey: ["itinerary", sessionId],
     queryFn: async () => {
       if (!sessionId) return [];
-      
-      const { data, error } = await supabase
-        .from("itinerary_items")
-        .select("*")
-        .eq("session_id", sessionId)
-        .order("start_time", { ascending: true });
 
-      if (error) throw error;
-      return data as ItineraryItem[];
+      const data = await api.get<ItineraryItem[]>(`/api/chat/itinerary?sessionId=${sessionId}`);
+      return data;
     },
     enabled: !!sessionId,
   });
@@ -41,13 +35,7 @@ export function useCreateItineraryItem() {
 
   return useMutation({
     mutationFn: async (item: Omit<ItineraryItem, "id" | "created_at" | "updated_at">) => {
-      const { data, error } = await supabase
-        .from("itinerary_items")
-        .insert(item)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await api.post<ItineraryItem>("/api/chat/itinerary", item);
       return data;
     },
     onSuccess: (_, variables) => {
@@ -60,44 +48,32 @@ export function useUpdateItineraryItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      id, 
-      sessionId, 
-      ...updates 
+    mutationFn: async ({
+      id,
+      sessionId,
+      ...updates
     }: { id: string; sessionId: string } & Partial<ItineraryItem>) => {
-      const { data, error } = await supabase
-        .from("itinerary_items")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await api.patch<ItineraryItem>(`/api/chat/itinerary/${id}`, updates);
       return data;
     },
     onMutate: async (variables) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["itinerary", variables.sessionId] });
 
-      // Snapshot previous value
-      const previousItems = queryClient.getQueryData<ItineraryItem[]>(["itinerary", variables.sessionId]);
+      const previousItems = queryClient.getQueryData<ItineraryItem[]>([
+        "itinerary",
+        variables.sessionId,
+      ]);
 
-      // Optimistically update
       if (previousItems) {
         queryClient.setQueryData<ItineraryItem[]>(
           ["itinerary", variables.sessionId],
-          previousItems.map(item =>
-            item.id === variables.id
-              ? { ...item, ...variables }
-              : item
-          )
+          previousItems.map((item) => (item.id === variables.id ? { ...item, ...variables } : item))
         );
       }
 
       return { previousItems };
     },
     onError: (_, variables, context) => {
-      // Rollback on error
       if (context?.previousItems) {
         queryClient.setQueryData(["itinerary", variables.sessionId], context.previousItems);
       }
@@ -113,12 +89,7 @@ export function useDeleteItineraryItem() {
 
   return useMutation({
     mutationFn: async ({ id, sessionId }: { id: string; sessionId: string }) => {
-      const { error } = await supabase
-        .from("itinerary_items")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await api.delete(`/api/chat/itinerary/${id}`);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["itinerary", variables.sessionId] });

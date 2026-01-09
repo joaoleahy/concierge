@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,13 +46,8 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
     
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("hotels")
-        .update(formData)
-        .eq("id", hotel.id);
+      await api.patch(`/api/admin/hotels/${hotel.id}`, formData);
 
-      if (error) throw error;
-      
       queryClient.invalidateQueries({ queryKey: ["hotel"] });
       toast.success("Configurações salvas!");
     } catch (error) {

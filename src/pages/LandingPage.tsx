@@ -22,10 +22,10 @@ import {
   Calendar,
   Send
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export default function LandingPage() {
   const { t } = useTranslation();
@@ -48,17 +48,13 @@ export default function LandingPage() {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.functions.invoke("send-demo-request", {
-        body: {
-          name: demoForm.name,
-          email: demoForm.email,
-          hotelName: demoForm.hotelName,
-          rooms: demoForm.rooms,
-          message: demoForm.message,
-        },
+      await api.post("/api/admin/demo-request", {
+        name: demoForm.name,
+        email: demoForm.email,
+        hotelName: demoForm.hotelName,
+        rooms: demoForm.rooms,
+        message: demoForm.message,
       });
-
-      if (error) throw error;
 
       toast.success(t("landing.cta.successTitle"), {
         description: t("landing.cta.successMessage")

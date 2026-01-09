@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check, Clock, RefreshCw, Volume2, VolumeX, LogOut, XCircle, Edit3 } from "lucide-react";

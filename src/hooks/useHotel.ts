@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export interface Hotel {
   id: string;
@@ -32,20 +32,9 @@ export function useHotelByQR(qrCode: string | null) {
     queryKey: ["room", qrCode],
     queryFn: async () => {
       if (!qrCode) return null;
-      
-      const { data: room, error: roomError } = await supabase
-        .from("rooms")
-        .select("*, hotels(*)")
-        .eq("qr_code", qrCode)
-        .maybeSingle();
 
-      if (roomError) throw roomError;
-      if (!room) return null;
-
-      return {
-        room: room as Room,
-        hotel: room.hotels as Hotel,
-      };
+      const data = await api.get<{ room: Room; hotel: Hotel }>(`/api/admin/rooms/qr/${qrCode}`);
+      return data;
     },
     enabled: !!qrCode,
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
@@ -57,15 +46,9 @@ export function useHotelById(hotelId: string | null) {
     queryKey: ["hotel", hotelId],
     queryFn: async () => {
       if (!hotelId) return null;
-      
-      const { data, error } = await supabase
-        .from("hotels")
-        .select("*")
-        .eq("id", hotelId)
-        .maybeSingle();
 
-      if (error) throw error;
-      return data as Hotel | null;
+      const data = await api.get<Hotel>(`/api/admin/hotels/${hotelId}`);
+      return data;
     },
     enabled: !!hotelId,
   });

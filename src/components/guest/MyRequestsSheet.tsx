@@ -16,7 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { GuestRequest } from "@/hooks/useGuestRequests";
 import { Clock, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { RequestCard } from "./requests/RequestCard";
 import { StatusFilter } from "@/lib/request-status";
@@ -41,12 +41,10 @@ export function MyRequestsSheet({ isOpen, onClose, requests, isLoading }: MyRequ
   const handleCancelRequest = async (requestId: string) => {
     setCancellingId(requestId);
     try {
-      const { error } = await supabase
-        .from("service_requests")
-        .update({ status: "cancelled", resolution: "cancelled_by_guest" })
-        .eq("id", requestId);
-
-      if (error) throw error;
+      await api.patch(`/api/services/requests/${requestId}`, {
+        status: "cancelled",
+        resolution: "cancelled_by_guest",
+      });
       toast.success(t("requests.cancelRequest"));
     } catch (error) {
       console.error("Error cancelling request:", error);
@@ -61,15 +59,10 @@ export function MyRequestsSheet({ isOpen, onClose, requests, isLoading }: MyRequ
     setRespondingId(requestId);
     try {
       const updates = accept
-        ? { status: "in_progress", guest_accepted: true, resolution: "accepted_modified" }
-        : { status: "rejected", guest_accepted: false, resolution: "rejected_modified" };
+        ? { status: "in_progress", guestAccepted: true, resolution: "accepted_modified" }
+        : { status: "rejected", guestAccepted: false, resolution: "rejected_modified" };
 
-      const { error } = await supabase
-        .from("service_requests")
-        .update(updates)
-        .eq("id", requestId);
-
-      if (error) throw error;
+      await api.patch(`/api/services/requests/${requestId}`, updates);
       toast.success(accept ? t("requests.acceptProposal") : t("requests.rejectProposal"));
     } catch (error) {
       console.error("Error responding to modification:", error);

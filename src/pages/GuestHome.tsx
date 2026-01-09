@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearch, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence } from "framer-motion";
 import { useHotelByQR, DEMO_QR_CODE } from "@/hooks/useHotel";
 import { useServiceTypes, ServiceType } from "@/hooks/useServiceTypes";
@@ -22,10 +22,10 @@ import "@fontsource/inter/700.css";
 import "@fontsource/playfair-display/700.css";
 
 export default function GuestHome() {
-  const [searchParams] = useSearchParams();
+  const search = useSearch({ from: "/" });
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const qrCode = searchParams.get("room") || DEMO_QR_CODE;
+  const qrCode = (search as { room?: string }).room || DEMO_QR_CODE;
   
   const { data, isLoading, error } = useHotelByQR(qrCode);
   const { data: services = [] } = useServiceTypes(data?.hotel?.id || null);

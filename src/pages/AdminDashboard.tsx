@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { Hotel, UtensilsCrossed, MapPin, DoorOpen, LogOut, Users, Settings } from "lucide-react";
 import { useUserHotel } from "@/hooks/useUserHotel";
 import { useHotelById } from "@/hooks/useHotel";

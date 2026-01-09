@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Shield, Lock, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -38,29 +38,31 @@ export function PinVerificationModal({
     setError(null);
 
     try {
-      const { data, error: rpcError } = await supabase.rpc("verify_room_pin", {
-        room_uuid: roomId,
-        provided_pin: pin,
-        client_ip: null, // Could be fetched from a service but not critical
+      const result = await api.post<{
+        success: boolean;
+        error?: string;
+        message?: string;
+        hotelId?: string;
+        roomId?: string;
+        sessionId?: string;
+      }>("/api/custom-auth/verify-pin", {
+        roomId,
+        pin,
       });
-
-      if (rpcError) {
-        console.error("PIN verification error:", rpcError);
-        setError(t("pinVerification.errorOccurred", "Erro ao verificar PIN. Tente novamente."));
-        return;
-      }
-
-      const result = data as { success: boolean; error?: string; message?: string; hotel_id?: string; room_id?: string };
 
       if (result.success) {
         onVerified({
-          hotelId: result.hotel_id!,
-          roomId: result.room_id!,
+          hotelId: result.hotelId!,
+          roomId: result.roomId!,
         });
       } else {
         setError(result.message || t("pinVerification.invalidPin", "PIN inválido"));
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err.message?.includes("Invalid PIN")) {
+        setError(t("pinVerification.invalidPin", "PIN inválido"));
+        return;
+      }
       console.error("Verification error:", err);
       setError(t("pinVerification.errorOccurred", "Erro ao verificar PIN. Tente novamente."));
     } finally {

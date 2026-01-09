@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useAuth, useUserRoles } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
@@ -10,27 +10,29 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, hotelId, requireAdmin = false }: ProtectedRouteProps) {
   const navigate = useNavigate();
-  const location = useLocation();
+  const routerState = useRouterState();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isStaff, loading: rolesLoading } = useUserRoles(user?.id, hotelId);
 
+  const currentPath = routerState.location.pathname + routerState.location.searchStr;
+
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+      navigate({ to: "/login", search: { redirect: currentPath } });
       return;
     }
 
     if (!authLoading && !rolesLoading && user && hotelId) {
       if (requireAdmin && !isAdmin) {
-        navigate("/unauthorized");
+        navigate({ to: "/unauthorized" as "/" });
         return;
       }
       if (!requireAdmin && !isStaff) {
-        navigate("/unauthorized");
+        navigate({ to: "/unauthorized" as "/" });
         return;
       }
     }
-  }, [authLoading, rolesLoading, user, hotelId, isAdmin, isStaff, requireAdmin, navigate, location]);
+  }, [authLoading, rolesLoading, user, hotelId, isAdmin, isStaff, requireAdmin, navigate, currentPath]);
 
   if (authLoading || rolesLoading) {
     return (

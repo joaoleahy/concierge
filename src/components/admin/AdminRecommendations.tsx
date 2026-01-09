@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, MapPin, Star } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { useLocalRecommendations } from "@/hooks/useLocalRecommendations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,27 +36,20 @@ export function AdminRecommendations({ hotelId }: AdminRecommendationsProps) {
   const handleSave = async (rec: any) => {
     try {
       if (rec.id) {
-        const { error } = await supabase
-          .from("local_recommendations")
-          .update({
-            name: rec.name,
-            name_pt: rec.name_pt,
-            description: rec.description,
-            description_pt: rec.description_pt,
-            category: rec.category,
-            address: rec.address,
-            google_maps_url: rec.google_maps_url,
-            price_range: rec.price_range,
-            is_hidden_gem: rec.is_hidden_gem,
-            is_active: rec.is_active,
-          })
-          .eq("id", rec.id);
-        if (error) throw error;
+        await api.patch(`/api/admin/recommendations/${rec.id}`, {
+          name: rec.name,
+          namePt: rec.name_pt,
+          description: rec.description,
+          descriptionPt: rec.description_pt,
+          category: rec.category,
+          address: rec.address,
+          googleMapsUrl: rec.google_maps_url,
+          priceRange: rec.price_range,
+          isHiddenGem: rec.is_hidden_gem,
+          isActive: rec.is_active,
+        });
       } else {
-        const { error } = await supabase
-          .from("local_recommendations")
-          .insert({ ...rec, hotel_id: hotelId });
-        if (error) throw error;
+        await api.post("/api/admin/recommendations", { ...rec, hotelId });
       }
       queryClient.invalidateQueries({ queryKey: ["local-recommendations"] });
       setEditing(null);
@@ -70,8 +63,7 @@ export function AdminRecommendations({ hotelId }: AdminRecommendationsProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir esta recomendação?")) return;
     try {
-      const { error } = await supabase.from("local_recommendations").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/api/admin/recommendations/${id}`);
       queryClient.invalidateQueries({ queryKey: ["local-recommendations"] });
       toast.success("Excluído!");
     } catch (error) {

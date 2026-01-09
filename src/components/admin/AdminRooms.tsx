@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, QrCode, Copy, Key, RefreshCw, Printer, MessageCircle, Download } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,12 +35,7 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
     queryKey: ["rooms", hotelId],
     queryFn: async () => {
       if (!hotelId) return [];
-      const { data, error } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("room_number");
-      if (error) throw error;
+      const data = await api.get<any[]>(`/api/admin/rooms?hotelId=${hotelId}`);
       return data;
     },
     enabled: !!hotelId,
@@ -49,20 +44,13 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
   const handleSave = async (room: any) => {
     try {
       if (room.id) {
-        const { error } = await supabase
-          .from("rooms")
-          .update({
-            room_number: room.room_number,
-            room_type: room.room_type,
-            floor: room.floor,
-          })
-          .eq("id", room.id);
-        if (error) throw error;
+        await api.patch(`/api/admin/rooms/${room.id}`, {
+          roomNumber: room.room_number,
+          roomType: room.room_type,
+          floor: room.floor,
+        });
       } else {
-        const { error } = await supabase
-          .from("rooms")
-          .insert({ ...room, hotel_id: hotelId });
-        if (error) throw error;
+        await api.post("/api/admin/rooms", { ...room, hotelId });
       }
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       setEditing(null);
@@ -76,8 +64,7 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir este quarto?")) return;
     try {
-      const { error } = await supabase.from("rooms").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/api/admin/rooms/${id}`);
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       toast.success("Excluído!");
     } catch (error) {
@@ -113,11 +100,8 @@ export function AdminRooms({ hotelId, hotelWhatsapp }: AdminRoomsProps) {
   const regeneratePin = useMutation({
     mutationFn: async (roomId: string) => {
       setRegeneratingPinId(roomId);
-      const { data, error } = await supabase.rpc("regenerate_room_pin", {
-        room_uuid: roomId,
-      });
-      if (error) throw error;
-      return data;
+      const data = await api.post<{ pin: string }>(`/api/admin/rooms/${roomId}/regenerate-pin`, {});
+      return data.pin;
     },
     onSuccess: (newPin) => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });

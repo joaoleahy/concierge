@@ -4,7 +4,7 @@ import { Plus, Edit2, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,12 +47,7 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["service-types", hotelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_types")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("sort_order");
-      if (error) throw error;
+      const data = await api.get<any[]>(`/api/admin/service-types?hotelId=${hotelId}`);
       return data;
     },
     enabled: !!hotelId,
@@ -60,24 +55,21 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (!over || active.id === over.id) return;
 
     const oldIndex = services.findIndex((s: any) => s.id === active.id);
     const newIndex = services.findIndex((s: any) => s.id === over.id);
-    
+
     const reordered = arrayMove(services, oldIndex, newIndex);
-    
+
     // Optimistic update
     queryClient.setQueryData(["service-types", hotelId], reordered);
-    
+
     // Update sort_order in database
     try {
-      const updates = reordered.map((service: any, index: number) => 
-        supabase
-          .from("service_types")
-          .update({ sort_order: index })
-          .eq("id", service.id)
+      const updates = reordered.map((service: any, index: number) =>
+        api.patch(`/api/admin/service-types/${service.id}`, { sortOrder: index })
       );
       await Promise.all(updates);
       toast.success("Ordem atualizada!");
@@ -90,32 +82,25 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
   const handleSave = async (service: any) => {
     try {
       if (service.id) {
-        const { error } = await supabase
-          .from("service_types")
-          .update({
-            name: service.name,
-            name_pt: service.name_pt,
-            description: service.description,
-            icon: service.icon,
-            requires_details: service.requires_details,
-            details_placeholder: service.details_placeholder,
-            whatsapp_template: service.whatsapp_template,
-            whatsapp_template_pt: service.whatsapp_template_pt,
-            is_active: service.is_active,
-            sort_order: service.sort_order,
-          })
-          .eq("id", service.id);
-        if (error) throw error;
+        await api.patch(`/api/admin/service-types/${service.id}`, {
+          name: service.name,
+          namePt: service.name_pt,
+          description: service.description,
+          icon: service.icon,
+          requiresDetails: service.requires_details,
+          detailsPlaceholder: service.details_placeholder,
+          whatsappTemplate: service.whatsapp_template,
+          whatsappTemplatePt: service.whatsapp_template_pt,
+          isActive: service.is_active,
+          sortOrder: service.sort_order,
+        });
       } else {
         const maxOrder = services.length > 0 ? Math.max(...services.map((s: any) => s.sort_order || 0)) : 0;
-        const { error } = await supabase
-          .from("service_types")
-          .insert({ 
-            ...service, 
-            hotel_id: hotelId,
-            sort_order: maxOrder + 1,
-          });
-        if (error) throw error;
+        await api.post("/api/admin/service-types", {
+          ...service,
+          hotelId,
+          sortOrder: maxOrder + 1,
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
       setEditing(null);
@@ -130,8 +115,7 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir este serviço?")) return;
     try {
-      const { error } = await supabase.from("service_types").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/api/admin/service-types/${id}`);
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
       toast.success("Excluído!");
     } catch (error) {
@@ -141,11 +125,9 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
 
   const toggleActive = async (service: any) => {
     try {
-      const { error } = await supabase
-        .from("service_types")
-        .update({ is_active: !service.is_active })
-        .eq("id", service.id);
-      if (error) throw error;
+      await api.patch(`/api/admin/service-types/${service.id}`, {
+        isActive: !service.is_active,
+      });
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
       toast.success(service.is_active ? "Serviço desativado" : "Serviço ativado");
     } catch (error) {

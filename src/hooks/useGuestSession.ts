@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 interface GuestSessionState {
   sessionId: string | null;
@@ -71,19 +71,13 @@ export function useGuestSession(hotelId: string | null, roomId: string | null) {
       setState((s) => ({ ...s, isLoading: true }));
 
       try {
-        // Create new verified session
-        const { data, error } = await supabase
-          .from("chat_sessions")
-          .insert({
-            hotel_id: verifiedData.hotelId,
-            room_id: verifiedData.roomId,
-            verified_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h expiry
-          })
-          .select("id")
-          .single();
+        // Create new verified session via API
+        const data = await api.post<{ id: string }>("/api/chat/session", {
+          hotelId: verifiedData.hotelId,
+          roomId: verifiedData.roomId,
+        });
 
-        if (data && !error) {
+        if (data?.id) {
           sessionStorage.setItem("chat-session-id", data.id);
           sessionStorage.setItem("verified-room-id", verifiedData.roomId);
           sessionStorage.setItem("verified-at", new Date().toISOString());
@@ -94,7 +88,7 @@ export function useGuestSession(hotelId: string | null, roomId: string | null) {
             isLoading: false,
           });
         } else {
-          console.error("Failed to create session:", error);
+          console.error("Failed to create session");
           setState((s) => ({ ...s, isLoading: false }));
         }
       } catch (err) {

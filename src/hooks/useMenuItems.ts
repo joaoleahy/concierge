@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 
 export interface MenuCategory {
   id: string;
@@ -34,16 +34,11 @@ export function useMenuCategories(hotelId: string | null) {
     queryKey: ["menu-categories", hotelId],
     queryFn: async () => {
       if (!hotelId) return [];
-      
-      const { data, error } = await supabase
-        .from("menu_categories")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
 
-      if (error) throw error;
-      return data as MenuCategory[];
+      const data = await api.get<(MenuCategory & { items: MenuItem[] })[]>(
+        `/api/menu/categories?hotelId=${hotelId}`
+      );
+      return data;
     },
     enabled: !!hotelId,
   });
@@ -54,21 +49,14 @@ export function useMenuItems(hotelId: string | null, categoryId?: string) {
     queryKey: ["menu-items", hotelId, categoryId],
     queryFn: async () => {
       if (!hotelId) return [];
-      
-      let query = supabase
-        .from("menu_items")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .eq("is_available", true)
-        .order("sort_order", { ascending: true });
 
+      let url = `/api/menu/items?hotelId=${hotelId}`;
       if (categoryId) {
-        query = query.eq("category_id", categoryId);
+        url += `&categoryId=${categoryId}`;
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as MenuItem[];
+      const data = await api.get<MenuItem[]>(url);
+      return data;
     },
     enabled: !!hotelId,
   });

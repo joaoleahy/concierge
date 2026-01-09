@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { useAuth } from "./useAuth";
 
 export interface UserHotelRole {
@@ -25,36 +25,19 @@ export function useUserHotel() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(`
-          hotel_id,
-          role,
-          hotels:hotel_id (
-            id,
-            name,
-            city,
-            country
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true });
+      const data = await api.get<{
+        hotelId: string;
+        role: "admin" | "staff";
+        hotel: {
+          id: string;
+          name: string;
+          city: string;
+          country: string;
+        };
+        allRoles: UserHotelRole[];
+      }>(`/api/custom-auth/user-hotel?userId=${user.id}`);
 
-      if (error) throw error;
-      if (!data || data.length === 0) return null;
-
-      // Return the first hotel (for MVP)
-      const firstRole = data[0] as any;
-      return {
-        hotelId: firstRole.hotel_id,
-        role: firstRole.role as "admin" | "staff",
-        hotel: firstRole.hotels,
-        allRoles: data.map((r: any) => ({
-          hotel_id: r.hotel_id,
-          role: r.role,
-          hotel: r.hotels,
-        })) as UserHotelRole[],
-      };
+      return data;
     },
     enabled: !!user?.id && !authLoading,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes

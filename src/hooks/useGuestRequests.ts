@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api/client";
 
 export interface GuestRequest {
   id: string;
@@ -16,73 +17,52 @@ export interface GuestRequest {
 }
 
 export function useGuestRequests(roomId: string | null) {
-  const [requests, setRequests] = useState<GuestRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [hasNewUpdate, setHasNewUpdate] = useState(false);
+  const queryClient = useQueryClient();
 
+  const { data: requests = [], isLoading } = useQuery({
+    queryKey: ["guest-requests", roomId],
+    queryFn: async () => {
+      if (!roomId) return [];
+      const data = await api.get<GuestRequest[]>(`/api/services/requests?roomId=${roomId}`);
+      return data;
+    },
+    enabled: !!roomId,
+    refetchInterval: 10000, // Poll every 10 seconds for updates
+  });
+
+  // Use SSE for realtime updates if available
   useEffect(() => {
-    if (!roomId) {
-      setRequests([]);
-      setIsLoading(false);
-      return;
-    }
+    if (!roomId) return;
 
-    // Fetch initial requests
-    const fetchRequests = async () => {
-      const { data, error } = await supabase
-        .from("service_requests")
-        .select("id, request_type, details, status, staff_response, responded_at, created_at, updated_at, service_type_id, resolution, guest_accepted")
-        .eq("room_id", roomId)
-        .order("created_at", { ascending: false });
+    const API_URL = import.meta.env.VITE_API_URL || "";
+    const eventSource = new EventSource(`${API_URL}/api/services/requests/stream?roomId=${roomId}`);
 
-      if (error) {
-        console.error("Error fetching guest requests:", error);
-      } else {
-        setRequests(data || []);
-      }
-      setIsLoading(false);
-    };
-
-    fetchRequests();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`guest-requests-${roomId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "service_requests",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setRequests((prev) => [payload.new as GuestRequest, ...prev]);
-          } else if (payload.eventType === "UPDATE") {
-            const updated = payload.new as GuestRequest;
-            setRequests((prev) =>
-              prev.map((r) => (r.id === updated.id ? updated : r))
-            );
-            // Flag new update if staff responded
-            if (updated.staff_response) {
-              setHasNewUpdate(true);
-            }
-          } else if (payload.eventType === "DELETE") {
-            setRequests((prev) =>
-              prev.filter((r) => r.id !== payload.old.id)
-            );
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "update") {
+          queryClient.invalidateQueries({ queryKey: ["guest-requests", roomId] });
+          if (data.hasStaffResponse) {
+            setHasNewUpdate(true);
           }
         }
-      )
-      .subscribe();
+      } catch (e) {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.onerror = () => {
+      // SSE connection failed, will fall back to polling
+      eventSource.close();
+    };
 
     return () => {
-      supabase.removeChannel(channel);
+      eventSource.close();
     };
-  }, [roomId]);
+  }, [roomId, queryClient]);
 
-  const clearNewUpdate = () => setHasNewUpdate(false);
+  const clearNewUpdate = useCallback(() => setHasNewUpdate(false), []);
 
   return { requests, isLoading, hasNewUpdate, clearNewUpdate };
 }

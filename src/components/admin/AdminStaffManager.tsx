@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,29 +45,8 @@ export function AdminStaffManager({ hotelId }: AdminStaffManagerProps) {
   const { data: staffMembers, isLoading: loadingStaff } = useQuery({
     queryKey: ["staff-members", hotelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(`
-          id,
-          user_id,
-          role,
-          created_at
-        `)
-        .eq("hotel_id", hotelId);
-
-      if (error) throw error;
-
-      // Fetch profiles for each user
-      const userIds = data.map((r) => r.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, email, display_name, avatar_url")
-        .in("user_id", userIds);
-
-      return data.map((member) => ({
-        ...member,
-        profile: profiles?.find((p) => p.user_id === member.user_id),
-      })) as StaffMember[];
+      const data = await api.get<StaffMember[]>(`/api/admin/staff?hotelId=${hotelId}`);
+      return data;
     },
   });
 
@@ -75,61 +54,34 @@ export function AdminStaffManager({ hotelId }: AdminStaffManagerProps) {
   const { data: invitations, isLoading: loadingInvitations } = useQuery({
     queryKey: ["staff-invitations", hotelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("staff_invitations")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Invitation[];
+      const data = await api.get<Invitation[]>(`/api/admin/staff/invitations?hotelId=${hotelId}`);
+      return data;
     },
   });
 
   // Create invitation mutation
   const createInvitation = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: "admin" | "staff" }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase
-        .from("staff_invitations")
-        .insert({
-          hotel_id: hotelId,
-          email,
-          role,
-          invited_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Send invitation email
-      try {
-        await supabase.functions.invoke("send-invitation-email", {
-          body: { invitationId: data.id },
-        });
-      } catch (emailError) {
-        console.error("Error sending email:", emailError);
-        // Continue even if email fails - link is copied
-      }
-
+      const data = await api.post<Invitation & { token: string }>("/api/admin/staff/invitations", {
+        hotelId,
+        email,
+        role,
+      });
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["staff-invitations", hotelId] });
       setNewEmail("");
-      
+
       // Copy invitation link
       const inviteUrl = `${window.location.origin}/login?invite=${data.token}`;
       navigator.clipboard.writeText(inviteUrl);
-      
+
       toast.success("Convite enviado!", {
         description: `Email enviado para ${data.email}. Link também copiado para área de transferência.`,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error("Erro ao criar convite", { description: error.message });
     },
   });
@@ -137,12 +89,7 @@ export function AdminStaffManager({ hotelId }: AdminStaffManagerProps) {
   // Delete invitation mutation
   const deleteInvitation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from("staff_invitations")
-        .delete()
-        .eq("id", invitationId);
-
-      if (error) throw error;
+      await api.delete(`/api/admin/staff/invitations/${invitationId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff-invitations", hotelId] });
@@ -153,12 +100,7 @@ export function AdminStaffManager({ hotelId }: AdminStaffManagerProps) {
   // Remove staff member mutation
   const removeStaffMember = useMutation({
     mutationFn: async (roleId: string) => {
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("id", roleId);
-
-      if (error) throw error;
+      await api.delete(`/api/admin/staff/${roleId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff-members", hotelId] });

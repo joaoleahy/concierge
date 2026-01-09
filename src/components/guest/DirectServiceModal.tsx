@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api/client";
 import { ServiceType } from "@/hooks/useServiceTypes";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -54,17 +54,14 @@ export function DirectServiceModal({
         fullDetails = preferredTime + (details ? ` - ${details}` : "");
       }
 
-      const { error } = await supabase.from("service_requests").insert({
-        hotel_id: hotelId,
-        room_id: roomId,
-        request_type: service.name,
-        service_type_id: service.id,
+      await api.post("/api/services/requests", {
+        hotelId,
+        roomId,
+        requestType: service.name,
+        serviceTypeId: service.id,
         details: fullDetails || null,
-        guest_language: language,
-        status: "pending",
+        guestLanguage: language,
       });
-
-      if (error) throw error;
 
       setShowSuccess(true);
       

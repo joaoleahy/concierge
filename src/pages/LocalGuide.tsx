@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearch, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, MapPin, Sparkles, Plus, ExternalLink, Utensils, Landmark, Umbrella, Palette, ShoppingBag, Moon } from "lucide-react";
@@ -35,8 +35,8 @@ export default function LocalGuide() {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const qrCode = searchParams.get("room") || DEMO_QR_CODE;
+  const search = useSearch({ strict: false });
+  const qrCode = (search as { room?: string }).room || DEMO_QR_CODE;
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
