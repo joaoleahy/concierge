@@ -14,6 +14,7 @@ import { AdminRecommendations } from "@/components/admin/AdminRecommendations";
 import { AdminRooms } from "@/components/admin/AdminRooms";
 import { AdminStaffManager } from "@/components/admin/AdminStaffManager";
 import { AdminServiceTypes } from "@/components/admin/AdminServiceTypes";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -81,6 +82,7 @@ export default function AdminDashboard() {
                   {profile?.display_name || user?.email}
                 </span>
               </div>
+              <LanguageSelector />
               <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair">
                 <LogOut className="h-4 w-4" />
               </Button>

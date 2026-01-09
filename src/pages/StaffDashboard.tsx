@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ServiceRequestDetailModal } from "@/components/staff/ServiceRequestDetailModal";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const statusColors: Record<string, string> = {
   pending: "bg-amber-500",
@@ -164,6 +165,7 @@ export default function StaffDashboard() {
                   </span>
                 )}
               </div>
+              <LanguageSelector />
               <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair">
                 <LogOut className="h-4 w-4" />
               </Button>
