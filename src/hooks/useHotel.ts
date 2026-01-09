@@ -10,10 +10,7 @@ export interface Hotel {
   breakfast_hours: string | null;
   checkout_time: string | null;
   whatsapp_number: string;
-  accent_color: string | null;
   tone_of_voice: "relaxed_resort" | "formal_business" | "boutique_chic" | "family_friendly";
-  logo_url: string | null;
-  banner_url: string | null;
   language: string | null;
   timezone: string | null;
 }

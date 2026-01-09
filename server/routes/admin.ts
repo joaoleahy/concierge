@@ -34,7 +34,25 @@ adminRoutes.get("/hotels/:id", async (c) => {
       return c.json({ error: "Hotel not found" }, 404);
     }
 
-    return c.json(hotel);
+    // Return with snake_case for frontend
+    return c.json({
+      id: hotel.id,
+      name: hotel.name,
+      city: hotel.city,
+      country: hotel.country,
+      whatsapp_number: hotel.whatsappNumber,
+      wifi_password: hotel.wifiPassword,
+      checkout_time: hotel.checkoutTime,
+      breakfast_hours: hotel.breakfastHours,
+      accent_color: hotel.accentColor,
+      tone_of_voice: hotel.toneOfVoice,
+      logo_url: hotel.logoUrl,
+      banner_url: hotel.bannerUrl,
+      language: hotel.language,
+      timezone: hotel.timezone,
+      created_at: hotel.createdAt,
+      updated_at: hotel.updatedAt,
+    });
   } catch (error) {
     console.error("Error fetching hotel:", error);
     return c.json({ error: "Failed to fetch hotel" }, 500);
@@ -43,16 +61,51 @@ adminRoutes.get("/hotels/:id", async (c) => {
 
 adminRoutes.patch("/hotels/:id", async (c) => {
   const id = c.req.param("id");
-  const updates = await c.req.json();
+  const data = await c.req.json();
+
+  // Helper to convert empty strings to null for optional fields
+  const toNullable = (value: string | undefined) =>
+    value === undefined ? undefined : (value === "" ? null : value);
+
+  // Map snake_case from frontend to camelCase for Drizzle
+  const updates: Record<string, any> = { updatedAt: new Date() };
+
+  if (data.name !== undefined) updates.name = data.name;
+  if (data.city !== undefined) updates.city = data.city;
+  if (data.country !== undefined) updates.country = data.country;
+  if (data.whatsapp_number !== undefined) updates.whatsappNumber = data.whatsapp_number || "";
+  if (data.wifi_password !== undefined) updates.wifiPassword = toNullable(data.wifi_password);
+  if (data.checkout_time !== undefined) updates.checkoutTime = toNullable(data.checkout_time);
+  if (data.breakfast_hours !== undefined) updates.breakfastHours = toNullable(data.breakfast_hours);
+  if (data.accent_color !== undefined) updates.accentColor = toNullable(data.accent_color);
+  if (data.tone_of_voice !== undefined) updates.toneOfVoice = data.tone_of_voice;
+  if (data.logo_url !== undefined) updates.logoUrl = toNullable(data.logo_url);
+  if (data.banner_url !== undefined) updates.bannerUrl = toNullable(data.banner_url);
 
   try {
     const [updated] = await db
       .update(hotels)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(hotels.id, id))
       .returning();
 
-    return c.json(updated);
+    // Return with snake_case for frontend
+    return c.json({
+      id: updated.id,
+      name: updated.name,
+      city: updated.city,
+      country: updated.country,
+      whatsapp_number: updated.whatsappNumber,
+      wifi_password: updated.wifiPassword,
+      checkout_time: updated.checkoutTime,
+      breakfast_hours: updated.breakfastHours,
+      accent_color: updated.accentColor,
+      tone_of_voice: updated.toneOfVoice,
+      logo_url: updated.logoUrl,
+      banner_url: updated.bannerUrl,
+      language: updated.language,
+      timezone: updated.timezone,
+    });
   } catch (error) {
     console.error("Error updating hotel:", error);
     return c.json({ error: "Failed to update hotel" }, 500);

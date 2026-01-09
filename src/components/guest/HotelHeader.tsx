@@ -12,8 +12,8 @@ export function HotelHeader({ hotel, roomNumber }: HotelHeaderProps) {
   const { t } = useTranslation();
 
   return (
-    <motion.header 
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent p-6 text-primary-foreground shadow-glow"
+    <motion.header
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1e3a5f] to-[#152a45] p-6 text-white shadow-lg"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
@@ -30,23 +30,14 @@ export function HotelHeader({ hotel, roomNumber }: HotelHeaderProps) {
       </div>
 
       <div className="relative z-10">
-        {/* Hotel logo placeholder */}
-        {hotel.logo_url ? (
-          <img 
-            src={hotel.logo_url} 
-            alt={hotel.name} 
-            className="mb-3 h-10 w-auto object-contain"
-          />
-        ) : (
-          <div className="mb-2 text-xs font-medium uppercase tracking-wider opacity-80">
-            {hotel.city}, {hotel.country}
-          </div>
-        )}
+        <div className="mb-2 text-xs font-medium uppercase tracking-wider opacity-80">
+          {hotel.city}, {hotel.country}
+        </div>
 
-        <h1 className="font-display text-2xl font-bold tracking-tight">
+        <h1 className="font-display text-2xl font-bold tracking-tight drop-shadow-sm">
           {hotel.name}
         </h1>
-        
+
         <div className="mt-3 flex items-center gap-2">
           <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-medium backdrop-blur-sm">
             {t("header.room")} {roomNumber}
