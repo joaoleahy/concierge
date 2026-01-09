@@ -46,8 +46,15 @@ export function RequestCard({
   const canRespondToModification = request.status === "modified";
   const showResolution = isTerminalStatus(request.status) && request.resolution;
 
-  const formatDate = (dateStr: string) => {
-    return format(new Date(dateStr), "dd MMM, HH:mm", { locale });
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "";
+      return format(date, "dd MMM, HH:mm", { locale });
+    } catch {
+      return "";
+    }
   };
 
   return (

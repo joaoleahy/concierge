@@ -42,7 +42,7 @@ servicesRoutes.post("/requests", zValidator("json", createRequestSchema), async 
   const data = c.req.valid("json");
 
   try {
-    const [request] = await db
+    const [r] = await db
       .insert(serviceRequests)
       .values({
         hotelId: data.hotelId,
@@ -55,7 +55,24 @@ servicesRoutes.post("/requests", zValidator("json", createRequestSchema), async 
       })
       .returning();
 
-    return c.json(request, 201);
+    return c.json(
+      {
+        id: r.id,
+        hotel_id: r.hotelId,
+        room_id: r.roomId,
+        service_type_id: r.serviceTypeId,
+        request_type: r.requestType,
+        details: r.details,
+        status: r.status,
+        staff_response: r.staffResponse,
+        resolution: r.resolution,
+        guest_language: r.guestLanguage,
+        responded_at: r.respondedAt,
+        created_at: r.createdAt,
+        updated_at: r.updatedAt,
+      },
+      201
+    );
   } catch (error) {
     console.error("Error creating service request:", error);
     return c.json({ error: "Failed to create service request" }, 500);
@@ -77,9 +94,35 @@ servicesRoutes.get("/requests", async (c) => {
         ? eq(serviceRequests.roomId, roomId)
         : eq(serviceRequests.hotelId, hotelId!),
       orderBy: (serviceRequests, { desc }) => [desc(serviceRequests.createdAt)],
+      with: {
+        room: true,
+      },
     });
 
-    return c.json(requests);
+    // Transform to snake_case for frontend compatibility
+    return c.json(
+      requests.map((r) => ({
+        id: r.id,
+        hotel_id: r.hotelId,
+        room_id: r.roomId,
+        service_type_id: r.serviceTypeId,
+        request_type: r.requestType,
+        details: r.details,
+        status: r.status,
+        staff_response: r.staffResponse,
+        resolution: r.resolution,
+        guest_language: r.guestLanguage,
+        responded_at: r.respondedAt,
+        created_at: r.createdAt,
+        updated_at: r.updatedAt,
+        room: r.room
+          ? {
+              id: r.room.id,
+              room_number: r.room.roomNumber,
+            }
+          : null,
+      }))
+    );
   } catch (error) {
     console.error("Error fetching requests:", error);
     return c.json({ error: "Failed to fetch requests" }, 500);
@@ -98,7 +141,7 @@ servicesRoutes.patch("/requests/:id", zValidator("json", updateRequestSchema), a
   const data = c.req.valid("json");
 
   try {
-    const [updated] = await db
+    const [r] = await db
       .update(serviceRequests)
       .set({
         status: data.status,
@@ -110,11 +153,25 @@ servicesRoutes.patch("/requests/:id", zValidator("json", updateRequestSchema), a
       .where(eq(serviceRequests.id, id))
       .returning();
 
-    if (!updated) {
+    if (!r) {
       return c.json({ error: "Request not found" }, 404);
     }
 
-    return c.json(updated);
+    return c.json({
+      id: r.id,
+      hotel_id: r.hotelId,
+      room_id: r.roomId,
+      service_type_id: r.serviceTypeId,
+      request_type: r.requestType,
+      details: r.details,
+      status: r.status,
+      staff_response: r.staffResponse,
+      resolution: r.resolution,
+      guest_language: r.guestLanguage,
+      responded_at: r.respondedAt,
+      created_at: r.createdAt,
+      updated_at: r.updatedAt,
+    });
   } catch (error) {
     console.error("Error updating request:", error);
     return c.json({ error: "Failed to update request" }, 500);

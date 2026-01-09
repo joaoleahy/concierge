@@ -267,6 +267,53 @@ adminRoutes.delete("/service-types/:id", async (c) => {
 // MENU (Categories & Items)
 // ============================================================================
 
+adminRoutes.get("/menu/categories", async (c) => {
+  const hotelId = c.req.query("hotelId");
+
+  if (!hotelId) {
+    return c.json({ error: "hotelId is required" }, 400);
+  }
+
+  try {
+    const categories = await db.query.menuCategories.findMany({
+      where: eq(menuCategories.hotelId, hotelId),
+      orderBy: (menuCategories, { asc }) => [asc(menuCategories.sortOrder)],
+    });
+
+    return c.json(categories);
+  } catch (error) {
+    console.error("Error fetching menu categories:", error);
+    return c.json({ error: "Failed to fetch categories" }, 500);
+  }
+});
+
+adminRoutes.get("/menu/items", async (c) => {
+  const hotelId = c.req.query("hotelId");
+  const categoryId = c.req.query("categoryId");
+
+  try {
+    let items;
+    if (categoryId) {
+      items = await db.query.menuItems.findMany({
+        where: eq(menuItems.categoryId, categoryId),
+        orderBy: (menuItems, { asc }) => [asc(menuItems.sortOrder)],
+      });
+    } else if (hotelId) {
+      items = await db.query.menuItems.findMany({
+        where: eq(menuItems.hotelId, hotelId),
+        orderBy: (menuItems, { asc }) => [asc(menuItems.sortOrder)],
+      });
+    } else {
+      return c.json({ error: "hotelId or categoryId is required" }, 400);
+    }
+
+    return c.json(items);
+  } catch (error) {
+    console.error("Error fetching menu items:", error);
+    return c.json({ error: "Failed to fetch items" }, 500);
+  }
+});
+
 adminRoutes.post("/menu/categories", async (c) => {
   const data = await c.req.json();
 
@@ -469,5 +516,141 @@ adminRoutes.get("/invitations", async (c) => {
   } catch (error) {
     console.error("Error fetching invitations:", error);
     return c.json({ error: "Failed to fetch invitations" }, 500);
+  }
+});
+
+adminRoutes.delete("/invitations/:id", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    await db.delete(staffInvitations).where(eq(staffInvitations.id, id));
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    return c.json({ error: "Failed to delete invitation" }, 500);
+  }
+});
+
+// ============================================================================
+// STAFF MANAGEMENT
+// ============================================================================
+
+// Get staff members for a hotel
+adminRoutes.get("/staff", async (c) => {
+  const hotelId = c.req.query("hotelId");
+
+  if (!hotelId) {
+    return c.json({ error: "hotelId is required" }, 400);
+  }
+
+  try {
+    const staff = await db.query.userRoles.findMany({
+      where: eq(userRoles.hotelId, hotelId),
+      with: {
+        user: true,
+      },
+    });
+
+    // Transform to expected format (snake_case for frontend)
+    return c.json(
+      staff.map((s) => ({
+        id: s.id,
+        user_id: s.userId,
+        role: s.role,
+        created_at: s.createdAt,
+        profile: s.user
+          ? {
+              email: s.user.email,
+              display_name: s.user.name,
+              avatar_url: null,
+            }
+          : null,
+      }))
+    );
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    return c.json({ error: "Failed to fetch staff" }, 500);
+  }
+});
+
+// Delete staff role
+adminRoutes.delete("/staff/:roleId", async (c) => {
+  const roleId = c.req.param("roleId");
+
+  try {
+    await db.delete(userRoles).where(eq(userRoles.id, roleId));
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting staff role:", error);
+    return c.json({ error: "Failed to delete staff role" }, 500);
+  }
+});
+
+// Helper to transform invitation to snake_case
+const transformInvitation = (inv: any) => ({
+  id: inv.id,
+  email: inv.email,
+  role: inv.role,
+  token: inv.token,
+  accepted_at: inv.acceptedAt,
+  expires_at: inv.expiresAt,
+  created_at: inv.createdAt,
+});
+
+// Staff invitations routes (alternative paths used by frontend)
+adminRoutes.get("/staff/invitations", async (c) => {
+  const hotelId = c.req.query("hotelId");
+
+  if (!hotelId) {
+    return c.json({ error: "hotelId is required" }, 400);
+  }
+
+  try {
+    const invitations = await db.query.staffInvitations.findMany({
+      where: eq(staffInvitations.hotelId, hotelId),
+    });
+
+    return c.json(invitations.map(transformInvitation));
+  } catch (error) {
+    console.error("Error fetching staff invitations:", error);
+    return c.json({ error: "Failed to fetch invitations" }, 500);
+  }
+});
+
+adminRoutes.post("/staff/invitations", async (c) => {
+  const { hotelId, email, role, invitedBy } = await c.req.json();
+
+  try {
+    const token = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const [invitation] = await db
+      .insert(staffInvitations)
+      .values({
+        hotelId,
+        email,
+        role,
+        invitedBy,
+        token,
+        expiresAt,
+      })
+      .returning();
+
+    return c.json(transformInvitation(invitation), 201);
+  } catch (error) {
+    console.error("Error creating staff invitation:", error);
+    return c.json({ error: "Failed to create invitation" }, 500);
+  }
+});
+
+adminRoutes.delete("/staff/invitations/:id", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    await db.delete(staffInvitations).where(eq(staffInvitations.id, id));
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting staff invitation:", error);
+    return c.json({ error: "Failed to delete invitation" }, 500);
   }
 });
