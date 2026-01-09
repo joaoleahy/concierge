@@ -9,7 +9,19 @@
     "close": "Fechar",
     "search": "Buscar",
     "optional": "opcional",
-    "required": "obrigatório"
+    "required": "obrigatório",
+    "new": "Novo",
+    "saving": "Salvando...",
+    "saveChanges": "Salvar Alterações",
+    "logout": "Sair",
+    "select": "Selecionar",
+    "variables": "Variáveis",
+    "activate": "Ativar",
+    "deactivate": "Desativar",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "all": "Todos",
+    "backToHome": "Voltar ao Início"
   },
   "header": {
     "welcome": "Bem-vindo",
@@ -29,7 +41,12 @@
     "destination": "Destino",
     "pickupTime": "Horário de busca",
     "lateCheckoutTime": "Horário de checkout",
-    "issueDescription": "Descreva o problema"
+    "issueDescription": "Descreva o problema",
+    "details": "Detalhes",
+    "enterDetails": "Digite os detalhes...",
+    "whatsappInfo": "Isso abrirá o WhatsApp para enviar sua solicitação diretamente para nossa equipe.",
+    "openingWhatsApp": "Abrindo WhatsApp...",
+    "needTaxi": "Preciso de um táxi"
   },
   "wifi": {
     "title": "WiFi",
@@ -78,15 +95,21 @@
     "welcomeTitle": "Bem-vindo ao {{hotelName}}!",
     "welcomeMessage": "Sou seu concierge IA. Pergunte sobre o hotel, recomendações locais ou solicite serviços.",
     "thinking": "Pensando...",
+    "typeMessage": "Digite uma mensagem...",
+    "chatWithConcierge": "Falar com Concierge",
     "quickActions": {
-      "roomService": "🛎️ Serviço de Quarto",
+      "roomService": "Serviço de Quarto",
       "roomServiceMsg": "Gostaria de pedir serviço de quarto",
-      "housekeeping": "🧹 Limpeza",
+      "housekeeping": "Limpeza",
       "housekeepingMsg": "Preciso de limpeza no quarto",
-      "taxi": "🚕 Táxi",
+      "taxi": "Táxi",
       "taxiMsg": "Pode chamar um táxi para mim?",
-      "recommendations": "📍 Recomendações",
+      "recommendations": "Recomendações",
       "recommendationsMsg": "Quais são os bons restaurantes por perto?"
+    },
+    "tools": {
+      "requestCreated": "Solicitação criada",
+      "addedToItinerary": "Adicionado ao itinerário"
     }
   },
   "recommendations": {
@@ -95,6 +118,7 @@
     "addToItinerary": "Adicionar ao Itinerário",
     "openMaps": "Abrir no Maps",
     "noResults": "Nenhuma recomendação encontrada",
+    "noRecommendationsFound": "Nenhuma recomendação encontrada",
     "all": "Todos"
   },
   "requests": {
@@ -109,7 +133,8 @@
     "reject": "Recusar",
     "acceptProposal": "Aceitar Proposta",
     "rejectProposal": "Recusar Proposta",
-    "awaitingResponse": "Aguardando sua resposta"
+    "awaitingResponse": "Aguardando sua resposta",
+    "newUpdateAvailable": "nova atualização disponível"
   },
   "status": {
     "pending": "Pendente",
@@ -160,7 +185,320 @@
     "services": "Serviços",
     "explore": "Explorar",
     "itinerary": "Itinerário",
-    "chat": "Chat"
+    "chat": "Chat",
+    "returnToHome": "Voltar ao Início"
+  },
+  "errors": {
+    "roomNotFound": "Quarto não encontrado",
+    "scanQrCode": "Por favor, escaneie o QR code no seu quarto.",
+    "pageNotFound": "Ops! Página não encontrada",
+    "accessDenied": "Acesso Negado",
+    "noPermission": "Você não tem permissão para acessar esta página. Entre em contato com o administrador do hotel.",
+    "failedToSendRequest": "Falha ao enviar solicitação. Por favor, tente novamente."
+  },
+  "validation": {
+    "pleaseProvideDetails": "Por favor, forneça os detalhes"
+  },
+  "auth": {
+    "staffArea": "Área Staff",
+    "loginOrCreate": "Entre ou crie sua conta para acessar o painel",
+    "pendingInvite": "Você tem um convite pendente! Faça login ou crie uma conta para aceitar.",
+    "login": "Entrar",
+    "signup": "Cadastrar",
+    "email": "Email",
+    "password": "Senha",
+    "name": "Nome",
+    "confirmPassword": "Confirmar Senha",
+    "forgotPassword": "Esqueci minha senha",
+    "loggingIn": "Entrando...",
+    "creatingAccount": "Criando conta...",
+    "or": "ou",
+    "loginWithGoogle": "Entrar com Google",
+    "signupWithGoogle": "Cadastrar com Google",
+    "backToSite": "Voltar ao site",
+    "backToLogin": "Voltar para login",
+    "loginWithAnotherAccount": "Fazer Login com Outra Conta",
+    "recovery": {
+      "title": "Recuperar Senha",
+      "checkInbox": "Verifique sua caixa de entrada",
+      "enterEmail": "Digite seu email para receber o link de recuperação",
+      "sending": "Enviando...",
+      "sendLink": "Enviar Link de Recuperação",
+      "emailSent": "Enviamos um email para <strong>{{email}}</strong> com instruções para redefinir sua senha."
+    },
+    "placeholders": {
+      "email": "seu@email.com",
+      "password": "••••••••",
+      "minChars": "Mínimo 6 caracteres",
+      "repeatPassword": "Repita a senha",
+      "yourName": "Seu nome"
+    },
+    "errors": {
+      "fillEmailPassword": "Preencha email e senha",
+      "fillAllFields": "Preencha todos os campos",
+      "minPassword": "A senha deve ter pelo menos 6 caracteres",
+      "passwordsDontMatch": "As senhas não coincidem",
+      "invalidCredentials": "Email ou senha incorretos",
+      "invalidEmail": "Email inválido",
+      "googleError": "Erro ao entrar com Google"
+    }
+  },
+  "admin": {
+    "panel": "Painel Administrativo",
+    "tabs": {
+      "hotel": "Hotel",
+      "services": "Serviços",
+      "menu": "Menu",
+      "places": "Locais",
+      "rooms": "Quartos",
+      "team": "Equipe"
+    },
+    "services": {
+      "title": "Serviços",
+      "description": "Configure os serviços disponíveis para os hóspedes",
+      "add": "Adicionar",
+      "edit": "Editar",
+      "new": "Novo",
+      "noServices": "Nenhum serviço cadastrado. Adicione serviços para seus hóspedes.",
+      "inactive": "Inativo",
+      "form": {
+        "nameEN": "Nome (EN)",
+        "namePT": "Nome (PT)",
+        "description": "Descrição",
+        "descriptionPlaceholder": "Descrição breve do serviço...",
+        "icon": "Ícone",
+        "requiresDetails": "Requer detalhes do hóspede",
+        "detailsPlaceholder": "Placeholder para detalhes",
+        "detailsPlaceholderEx": "Ex: Descreva sua solicitação...",
+        "whatsappTemplateEN": "Template WhatsApp (EN)",
+        "whatsappTemplatePT": "Template WhatsApp (PT)",
+        "active": "Serviço ativo"
+      },
+      "icons": {
+        "concierge": "Concierge",
+        "restaurant": "Restaurante",
+        "room": "Quarto",
+        "laundry": "Lavanderia",
+        "transport": "Transporte",
+        "cleaning": "Limpeza",
+        "wifi": "WiFi",
+        "maintenance": "Manutenção",
+        "wellness": "Bem-estar",
+        "reservations": "Reservas"
+      },
+      "placeholders": {
+        "nameEN": "Room Service",
+        "namePT": "Serviço de Quarto",
+        "whatsappEN": "Room {room_number} requests {service_name}. Details: {details}",
+        "whatsappPT": "Quarto {room_number} solicita {service_name}. Detalhes: {details}"
+      }
+    },
+    "menu": {
+      "categories": "Categorias do Menu",
+      "categoriesDesc": "Organize os itens do menu por categorias",
+      "items": "Itens do Menu",
+      "itemsDesc": "Pratos e bebidas disponíveis",
+      "addCategory": "Categoria",
+      "addItem": "Item",
+      "noCategories": "Nenhuma categoria criada",
+      "noItems": "Nenhum item criado",
+      "unavailable": "Indisponível",
+      "editCategory": "Editar Categoria",
+      "newCategory": "Nova Categoria",
+      "editItem": "Editar Item",
+      "newItem": "Novo Item",
+      "form": {
+        "nameEN": "Nome (EN)",
+        "namePT": "Nome (PT)",
+        "description": "Descrição",
+        "price": "Preço (R$)",
+        "category": "Categoria",
+        "available": "Disponível"
+      }
+    },
+    "recommendations": {
+      "title": "Recomendações Locais",
+      "description": "Lugares que você recomenda aos hóspedes",
+      "add": "Adicionar",
+      "noRecommendations": "Nenhuma recomendação cadastrada",
+      "hiddenGem": "Hidden Gem",
+      "editRecommendation": "Editar Recomendação",
+      "newRecommendation": "Nova Recomendação",
+      "categories": {
+        "restaurant": "Restaurante",
+        "bar": "Bar",
+        "beach": "Praia",
+        "attraction": "Atração",
+        "shopping": "Compras",
+        "nature": "Natureza"
+      },
+      "priceRange": {
+        "label": "Faixa de Preço",
+        "select": "Selecione",
+        "budget": "$ - Econômico",
+        "moderate": "$$ - Moderado",
+        "high": "$$$ - Alto",
+        "luxury": "$$$$ - Luxo"
+      },
+      "form": {
+        "nameEN": "Nome (EN)",
+        "namePT": "Nome (PT)",
+        "descriptionEN": "Descrição (EN)",
+        "descriptionPT": "Descrição (PT)",
+        "category": "Categoria",
+        "address": "Endereço",
+        "mapsUrl": "Google Maps URL",
+        "mapsPlaceholder": "https://maps.google.com/...",
+        "hiddenGem": "Hidden Gem",
+        "active": "Ativo"
+      }
+    },
+    "rooms": {
+      "title": "Quartos",
+      "description": "Gerencie os quartos, QR codes e PINs de acesso",
+      "add": "Adicionar",
+      "noRooms": "Nenhum quarto cadastrado",
+      "qrCode": "QR Code",
+      "sendPin": "Enviar PIN",
+      "pin": "PIN",
+      "copyPin": "Copiar PIN",
+      "regeneratePin": "Regenerar PIN",
+      "floor": "andar",
+      "editRoom": "Editar Quarto",
+      "newRoom": "Novo Quarto",
+      "types": {
+        "standard": "Standard",
+        "superior": "Superior",
+        "deluxe": "Deluxe",
+        "suite": "Suíte",
+        "masterSuite": "Master Suíte"
+      },
+      "form": {
+        "roomNumber": "Número do Quarto",
+        "type": "Tipo",
+        "floor": "Andar",
+        "qrCodeId": "QR Code"
+      },
+      "qrPrint": {
+        "title": "QR Code - Quarto",
+        "welcome": "Bem-vindo!",
+        "room": "Quarto",
+        "scanToAccess": "Escaneie o QR Code para acessar os serviços do hotel",
+        "accessPin": "Seu PIN de acesso:",
+        "usePin": "Use este PIN na primeira vez que acessar",
+        "print": "Imprimir",
+        "download": "Baixar"
+      },
+      "whatsapp": {
+        "welcome": "Bem-vindo ao quarto",
+        "pinIs": "Seu PIN de acesso é",
+        "useLink": "Use este PIN para acessar os serviços do hotel pelo link",
+        "enjoyStay": "Boa estadia!"
+      }
+    },
+    "staff": {
+      "invite": "Convidar Membro da Equipe",
+      "inviteDesc": "Envie convites para novos membros. Eles receberão um link para criar conta e acessar o sistema.",
+      "currentTeam": "Equipe Atual",
+      "currentTeamDesc": "Membros com acesso ao painel de administração e staff.",
+      "pendingInvites": "Convites Pendentes",
+      "noMembers": "Nenhum membro na equipe ainda. Envie convites acima.",
+      "table": {
+        "member": "Membro",
+        "role": "Função",
+        "since": "Desde",
+        "email": "Email",
+        "expiresIn": "Expira em"
+      },
+      "roles": {
+        "admin": "Admin",
+        "staff": "Staff"
+      },
+      "form": {
+        "email": "Email",
+        "emailPlaceholder": "email@exemplo.com",
+        "role": "Função"
+      },
+      "inviting": "Enviando...",
+      "inviteBtn": "Convidar",
+      "noName": "Sem nome",
+      "noEmail": "Email não disponível"
+    },
+    "hotel": {
+      "basicInfo": "Informações Básicas",
+      "basicInfoDesc": "Configure as informações principais do hotel",
+      "guestInfo": "Informações para Hóspedes",
+      "guestInfoDesc": "Dados exibidos no app do hóspede",
+      "customization": "Personalização",
+      "customizationDesc": "Tom de comunicação do concierge virtual",
+      "noHotel": "Nenhum hotel encontrado",
+      "form": {
+        "name": "Nome do Hotel",
+        "city": "Cidade",
+        "country": "País",
+        "whatsapp": "WhatsApp",
+        "wifiPassword": "Senha do Wi-Fi",
+        "checkoutTime": "Horário de Check-out",
+        "breakfastHours": "Horário do Café da Manhã",
+        "breakfastPlaceholder": "Ex: 07:00 - 10:00",
+        "toneOfVoice": "Tom de Voz do Concierge"
+      },
+      "tones": {
+        "relaxedResort": "Resort Relaxado",
+        "formalBusiness": "Formal / Executivo",
+        "boutiqueChic": "Boutique Chique",
+        "familyFriendly": "Familiar"
+      }
+    },
+    "noHotelSelected": "Nenhum hotel selecionado"
+  },
+  "toast": {
+    "saved": "Salvo!",
+    "deleted": "Excluído!",
+    "orderUpdated": "Ordem atualizada!",
+    "copied": "Copiado!",
+    "linkCopied": "Link copiado!",
+    "pinCopied": "PIN copiado!",
+    "qrDownloaded": "QR Code baixado!",
+    "inviteSent": "Convite enviado!",
+    "inviteSentDesc": "Email enviado para {{email}}. Link também copiado para área de transferência.",
+    "inviteRemoved": "Convite removido",
+    "memberRemoved": "Membro removido da equipe",
+    "messageCopied": "Mensagem copiada! Cole no WhatsApp para enviar ao hóspede.",
+    "recoverySent": "Email de recuperação enviado!",
+    "accountCreated": "Conta criada com sucesso!",
+    "inviteAccepted": "Convite aceito com sucesso!",
+    "statusUpdated": "Status atualizado!",
+    "configureWhatsapp": "Configure o WhatsApp do hotel primeiro",
+    "serviceSaved": "Serviço salvo!",
+    "serviceActivated": "Serviço ativado",
+    "serviceDeactivated": "Serviço desativado",
+    "categorySaved": "Categoria salva!",
+    "categoryDeleted": "Categoria excluída!",
+    "itemSaved": "Item salvo!",
+    "itemDeleted": "Item excluído!",
+    "recommendationSaved": "Recomendação salva!",
+    "roomSaved": "Quarto salvo!",
+    "settingsSaved": "Configurações salvas!",
+    "errors": {
+      "save": "Erro ao salvar",
+      "delete": "Erro ao excluir",
+      "reorder": "Erro ao reordenar",
+      "update": "Erro ao atualizar",
+      "createInvite": "Erro ao criar convite",
+      "regeneratePin": "Erro ao regenerar PIN",
+      "logout": "Erro ao sair",
+      "acceptInvite": "Erro ao aceitar convite",
+      "sendRecovery": "Erro ao enviar email",
+      "updateStatus": "Erro ao atualizar status"
+    }
+  },
+  "confirm": {
+    "deleteService": "Excluir este serviço?",
+    "deleteCategory": "Excluir esta categoria e todos os itens?",
+    "deleteItem": "Excluir este item?",
+    "deleteRecommendation": "Excluir esta recomendação?",
+    "deleteRoom": "Excluir este quarto?"
   },
   "landing": {
     "nav": {

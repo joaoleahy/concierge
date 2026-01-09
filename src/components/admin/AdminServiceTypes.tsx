@@ -4,6 +4,7 @@ import { Plus, Edit2, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,20 +20,21 @@ interface AdminServiceTypesProps {
   hotelId: string;
 }
 
-const iconOptions = [
-  { value: "bell-concierge", label: "Concierge" },
-  { value: "utensils", label: "Restaurante" },
-  { value: "bed", label: "Quarto" },
-  { value: "shirt", label: "Lavanderia" },
-  { value: "car", label: "Transporte" },
-  { value: "sparkles", label: "Limpeza" },
-  { value: "wifi", label: "WiFi" },
-  { value: "wrench", label: "Manutenção" },
-  { value: "heart", label: "Bem-estar" },
-  { value: "calendar", label: "Reservas" },
+const getIconOptions = (t: (key: string) => string) => [
+  { value: "bell-concierge", label: t("admin.services.icons.concierge") },
+  { value: "utensils", label: t("admin.services.icons.restaurant") },
+  { value: "bed", label: t("admin.services.icons.room") },
+  { value: "shirt", label: t("admin.services.icons.laundry") },
+  { value: "car", label: t("admin.services.icons.transport") },
+  { value: "sparkles", label: t("admin.services.icons.cleaning") },
+  { value: "wifi", label: t("admin.services.icons.wifi") },
+  { value: "wrench", label: t("admin.services.icons.maintenance") },
+  { value: "heart", label: t("admin.services.icons.wellness") },
+  { value: "calendar", label: t("admin.services.icons.reservations") },
 ];
 
 export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -72,10 +74,10 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
         api.patch(`/api/admin/service-types/${service.id}`, { sortOrder: index })
       );
       await Promise.all(updates);
-      toast.success("Ordem atualizada!");
+      toast.success(t("toast.orderUpdated"));
     } catch (error) {
       queryClient.invalidateQueries({ queryKey: ["service-types", hotelId] });
-      toast.error("Erro ao reordenar");
+      toast.error(t("toast.errors.reorder"));
     }
   };
 
@@ -105,21 +107,21 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
       setEditing(null);
       setIsAdding(false);
-      toast.success("Serviço salvo!");
+      toast.success(t("toast.saved"));
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao salvar");
+      toast.error(t("toast.errors.save"));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este serviço?")) return;
+    if (!confirm(t("confirm.deleteService"))) return;
     try {
       await api.delete(`/api/admin/service-types/${id}`);
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
-      toast.success("Excluído!");
+      toast.success(t("toast.deleted"));
     } catch (error) {
-      toast.error("Erro ao excluir");
+      toast.error(t("toast.errors.delete"));
     }
   };
 
@@ -129,9 +131,9 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
         isActive: !service.is_active,
       });
       queryClient.invalidateQueries({ queryKey: ["service-types"] });
-      toast.success(service.is_active ? "Serviço desativado" : "Serviço ativado");
+      toast.success(t("toast.saved"));
     } catch (error) {
-      toast.error("Erro ao atualizar");
+      toast.error(t("toast.errors.update"));
     }
   };
 
@@ -140,11 +142,11 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Serviços</CardTitle>
-            <CardDescription>Configure os serviços disponíveis para os hóspedes</CardDescription>
+            <CardTitle>{t("admin.services.title")}</CardTitle>
+            <CardDescription>{t("admin.services.description")}</CardDescription>
           </div>
           <Button size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Adicionar
+            <Plus className="h-4 w-4 mr-1" /> {t("common.add")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -154,7 +156,7 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
             </div>
           ) : services.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              Nenhum serviço cadastrado. Adicione serviços para seus hóspedes.
+              {t("admin.services.noServices")}
             </p>
           ) : (
             <DndContext 
@@ -171,6 +173,7 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
                       onEdit={() => setEditing(service)}
                       onDelete={() => handleDelete(service.id)}
                       onToggleActive={() => toggleActive(service)}
+                      t={t}
                     />
                   ))}
                 </div>
@@ -183,9 +186,10 @@ export function AdminServiceTypes({ hotelId }: AdminServiceTypesProps) {
       <Dialog open={!!editing || isAdding} onOpenChange={(open) => { if (!open) { setEditing(null); setIsAdding(false); } }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing?.id ? "Editar" : "Novo"} Serviço</DialogTitle>
+            <DialogTitle>{editing?.id ? t("admin.services.edit") : t("admin.services.new")} {t("admin.services.title")}</DialogTitle>
           </DialogHeader>
           <ServiceForm
+            t={t}
             service={editing || {
               name: "",
               name_pt: "",
@@ -211,9 +215,10 @@ interface SortableServiceItemProps {
   onEdit: () => void;
   onDelete: () => void;
   onToggleActive: () => void;
+  t: (key: string) => string;
 }
 
-function SortableServiceItem({ service, onEdit, onDelete, onToggleActive }: SortableServiceItemProps) {
+function SortableServiceItem({ service, onEdit, onDelete, onToggleActive, t }: SortableServiceItemProps) {
   const {
     attributes,
     listeners,
@@ -252,7 +257,7 @@ function SortableServiceItem({ service, onEdit, onDelete, onToggleActive }: Sort
             <span className="text-sm text-muted-foreground">/ {service.name_pt}</span>
           )}
           {!service.is_active && (
-            <Badge variant="secondary">Inativo</Badge>
+            <Badge variant="secondary">{t("admin.services.inactive")}</Badge>
           )}
         </div>
         {service.description && (
@@ -261,12 +266,12 @@ function SortableServiceItem({ service, onEdit, onDelete, onToggleActive }: Sort
       </div>
 
       <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-8 w-8"
           onClick={onToggleActive}
-          title={service.is_active ? "Desativar" : "Ativar"}
+          title={service.is_active ? t("common.deactivate") : t("common.activate")}
         >
           {service.is_active ? (
             <Eye className="h-4 w-4" />
@@ -295,45 +300,45 @@ function SortableServiceItem({ service, onEdit, onDelete, onToggleActive }: Sort
   );
 }
 
-function ServiceForm({ service, onSave, onCancel }: { service: any; onSave: (s: any) => void; onCancel: () => void }) {
+function ServiceForm({ service, onSave, onCancel, t }: { service: any; onSave: (s: any) => void; onCancel: () => void; t: (key: string) => string }) {
   const [data, setData] = useState({ ...service });
+  const iconOptions = getIconOptions(t);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>Nome (EN)</Label>
-          <Input 
-            value={data.name} 
-            onChange={(e) => setData({ ...data, name: e.target.value })} 
+          <Label>{t("admin.services.form.nameEN")}</Label>
+          <Input
+            value={data.name}
+            onChange={(e) => setData({ ...data, name: e.target.value })}
             placeholder="Room Service"
           />
         </div>
         <div className="space-y-2">
-          <Label>Nome (PT)</Label>
-          <Input 
-            value={data.name_pt || ""} 
-            onChange={(e) => setData({ ...data, name_pt: e.target.value })} 
+          <Label>{t("admin.services.form.namePT")}</Label>
+          <Input
+            value={data.name_pt || ""}
+            onChange={(e) => setData({ ...data, name_pt: e.target.value })}
             placeholder="Serviço de Quarto"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label>Descrição</Label>
-        <Textarea 
-          value={data.description || ""} 
-          onChange={(e) => setData({ ...data, description: e.target.value })} 
-          placeholder="Descrição breve do serviço..."
+        <Label>{t("admin.services.form.description")}</Label>
+        <Textarea
+          value={data.description || ""}
+          onChange={(e) => setData({ ...data, description: e.target.value })}
           rows={2}
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>Ícone</Label>
-          <select 
-            value={data.icon} 
+          <Label>{t("admin.services.form.icon")}</Label>
+          <select
+            value={data.icon}
             onChange={(e) => setData({ ...data, icon: e.target.value })}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
@@ -348,40 +353,39 @@ function ServiceForm({ service, onSave, onCancel }: { service: any; onSave: (s: 
               checked={data.requires_details}
               onCheckedChange={(checked) => setData({ ...data, requires_details: checked })}
             />
-            <Label className="cursor-pointer">Requer detalhes do hóspede</Label>
+            <Label className="cursor-pointer">{t("admin.services.form.requiresDetails")}</Label>
           </div>
         </div>
       </div>
 
       {data.requires_details && (
         <div className="space-y-2">
-          <Label>Placeholder para detalhes</Label>
-          <Input 
-            value={data.details_placeholder || ""} 
-            onChange={(e) => setData({ ...data, details_placeholder: e.target.value })} 
-            placeholder="Ex: Descreva sua solicitação..."
+          <Label>{t("admin.services.form.detailsPlaceholder")}</Label>
+          <Input
+            value={data.details_placeholder || ""}
+            onChange={(e) => setData({ ...data, details_placeholder: e.target.value })}
           />
         </div>
       )}
 
       <div className="space-y-2">
-        <Label>Template WhatsApp (EN)</Label>
-        <Textarea 
-          value={data.whatsapp_template || ""} 
-          onChange={(e) => setData({ ...data, whatsapp_template: e.target.value })} 
+        <Label>{t("admin.services.form.whatsappTemplateEN")}</Label>
+        <Textarea
+          value={data.whatsapp_template || ""}
+          onChange={(e) => setData({ ...data, whatsapp_template: e.target.value })}
           placeholder="Room {room_number} requests {service_name}. Details: {details}"
           rows={2}
         />
         <p className="text-xs text-muted-foreground">
-          Variáveis: {"{room_number}"}, {"{service_name}"}, {"{details}"}
+          {t("common.variables")}: {"{room_number}"}, {"{service_name}"}, {"{details}"}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label>Template WhatsApp (PT)</Label>
-        <Textarea 
-          value={data.whatsapp_template_pt || ""} 
-          onChange={(e) => setData({ ...data, whatsapp_template_pt: e.target.value })} 
+        <Label>{t("admin.services.form.whatsappTemplatePT")}</Label>
+        <Textarea
+          value={data.whatsapp_template_pt || ""}
+          onChange={(e) => setData({ ...data, whatsapp_template_pt: e.target.value })}
           placeholder="Quarto {room_number} solicita {service_name}. Detalhes: {details}"
           rows={2}
         />
@@ -392,13 +396,13 @@ function ServiceForm({ service, onSave, onCancel }: { service: any; onSave: (s: 
           checked={data.is_active}
           onCheckedChange={(checked) => setData({ ...data, is_active: checked })}
         />
-        <Label className="cursor-pointer">Serviço ativo</Label>
+        <Label className="cursor-pointer">{t("admin.services.form.active")}</Label>
       </div>
 
       <div className="flex gap-2 justify-end pt-4 border-t">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+        <Button variant="outline" onClick={onCancel}>{t("common.cancel")}</Button>
         <Button onClick={() => onSave(data)} disabled={!data.name || !data.whatsapp_template}>
-          Salvar
+          {t("common.save")}
         </Button>
       </div>
     </div>

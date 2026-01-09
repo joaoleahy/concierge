@@ -96,8 +96,8 @@ export default function GuestHome() {
   if (error || !data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
-        <h1 className="text-xl font-semibold">Room not found</h1>
-        <p className="text-muted-foreground">Please scan the QR code in your room.</p>
+        <h1 className="text-xl font-semibold">{t("errors.roomNotFound")}</h1>
+        <p className="text-muted-foreground">{t("errors.scanQrCode")}</p>
       </div>
     );
   }

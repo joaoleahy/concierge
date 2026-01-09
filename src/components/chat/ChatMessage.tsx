@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Bot, User, CheckCircle2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import type { ChatMessage as ChatMessageType } from "@/hooks/useConciergeChat";
 
@@ -9,6 +10,7 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
+  const { t } = useTranslation();
   const isUser = message.role === "user";
 
   return (
@@ -51,14 +53,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
         {/* Tool call indicators */}
         {message.toolCalls?.map((tool, idx) => (
-          <div 
+          <div
             key={idx}
             className="flex items-center gap-1.5 text-xs text-muted-foreground"
           >
             <CheckCircle2 className="h-3 w-3 text-concierge-success" />
             <span>
-              {tool.name === "create_service_request" && "Solicitação criada"}
-              {tool.name === "create_itinerary_item" && "Adicionado ao itinerário"}
+              {tool.name === "create_service_request" && t("chat.tools.requestCreated")}
+              {tool.name === "create_itinerary_item" && t("chat.tools.addedToItinerary")}
             </span>
           </div>
         ))}

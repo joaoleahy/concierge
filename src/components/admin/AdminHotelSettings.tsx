@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ interface AdminHotelSettingsProps {
 }
 
 export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,16 +43,16 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
 
   const handleSave = async () => {
     if (!hotel?.id) return;
-    
+
     setSaving(true);
     try {
       await api.patch(`/api/admin/hotels/${hotel.id}`, formData);
 
       queryClient.invalidateQueries({ queryKey: ["hotel"] });
-      toast.success("Configurações salvas!");
+      toast.success(t("toast.saved"));
     } catch (error) {
       console.error("Error saving:", error);
-      toast.error("Erro ao salvar");
+      toast.error(t("toast.errors.save"));
     } finally {
       setSaving(false);
     }
@@ -60,7 +62,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
     return (
       <Card>
         <CardContent className="py-12 text-center text-muted-foreground">
-          Nenhum hotel encontrado
+          {t("admin.hotel.noHotel")}
         </CardContent>
       </Card>
     );
@@ -70,13 +72,13 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Informações Básicas</CardTitle>
-          <CardDescription>Configure as informações principais do hotel</CardDescription>
+          <CardTitle>{t("admin.hotel.basicInfo")}</CardTitle>
+          <CardDescription>{t("admin.hotel.basicInfoDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome do Hotel</Label>
+              <Label htmlFor="name">{t("admin.hotel.form.name")}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -84,7 +86,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
+              <Label htmlFor="city">{t("admin.hotel.form.city")}</Label>
               <Input
                 id="city"
                 value={formData.city}
@@ -92,7 +94,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="country">País</Label>
+              <Label htmlFor="country">{t("admin.hotel.form.country")}</Label>
               <Input
                 id="country"
                 value={formData.country}
@@ -100,7 +102,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp</Label>
+              <Label htmlFor="whatsapp">{t("admin.hotel.form.whatsapp")}</Label>
               <Input
                 id="whatsapp"
                 value={formData.whatsapp_number}
@@ -113,13 +115,13 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Informações para Hóspedes</CardTitle>
-          <CardDescription>Dados exibidos no app do hóspede</CardDescription>
+          <CardTitle>{t("admin.hotel.guestInfo")}</CardTitle>
+          <CardDescription>{t("admin.hotel.guestInfoDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="wifi">Senha do Wi-Fi</Label>
+              <Label htmlFor="wifi">{t("admin.hotel.form.wifiPassword")}</Label>
               <Input
                 id="wifi"
                 value={formData.wifi_password}
@@ -127,7 +129,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="checkout">Horário de Check-out</Label>
+              <Label htmlFor="checkout">{t("admin.hotel.form.checkoutTime")}</Label>
               <Input
                 id="checkout"
                 type="time"
@@ -136,10 +138,10 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="breakfast">Horário do Café da Manhã</Label>
+              <Label htmlFor="breakfast">{t("admin.hotel.form.breakfastHours")}</Label>
               <Input
                 id="breakfast"
-                placeholder="Ex: 07:00 - 10:00"
+                placeholder={t("admin.hotel.form.breakfastPlaceholder")}
                 value={formData.breakfast_hours}
                 onChange={(e) => setFormData({ ...formData, breakfast_hours: e.target.value })}
               />
@@ -150,12 +152,12 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Personalização</CardTitle>
-          <CardDescription>Tom de comunicação do concierge virtual</CardDescription>
+          <CardTitle>{t("admin.hotel.customization")}</CardTitle>
+          <CardDescription>{t("admin.hotel.customizationDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="tone">Tom de Voz do Concierge</Label>
+            <Label htmlFor="tone">{t("admin.hotel.form.toneOfVoice")}</Label>
             <Select
               value={formData.tone_of_voice}
               onValueChange={(value: "relaxed_resort" | "formal_business" | "boutique_chic" | "family_friendly") => setFormData({ ...formData, tone_of_voice: value })}
@@ -164,10 +166,10 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="relaxed_resort">Resort Relaxado</SelectItem>
-                <SelectItem value="formal_business">Formal / Executivo</SelectItem>
-                <SelectItem value="boutique_chic">Boutique Chique</SelectItem>
-                <SelectItem value="family_friendly">Familiar</SelectItem>
+                <SelectItem value="relaxed_resort">{t("admin.hotel.tones.relaxedResort")}</SelectItem>
+                <SelectItem value="formal_business">{t("admin.hotel.tones.formalBusiness")}</SelectItem>
+                <SelectItem value="boutique_chic">{t("admin.hotel.tones.boutiqueChic")}</SelectItem>
+                <SelectItem value="family_friendly">{t("admin.hotel.tones.familyFriendly")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -177,7 +179,7 @@ export function AdminHotelSettings({ hotel }: AdminHotelSettingsProps) {
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? "Salvando..." : "Salvar Alterações"}
+          {saving ? t("common.saving") : t("common.saveChanges")}
         </Button>
       </div>
     </div>

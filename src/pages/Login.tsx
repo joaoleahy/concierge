@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Hotel, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { redirect?: string; invite?: string };
   const redirect = search.redirect || "/admin";
@@ -37,15 +39,15 @@ export default function Login() {
           );
 
           if (result?.success) {
-            toast.success(result.message || "Convite aceito com sucesso!");
+            toast.success(result.message || t("toast.inviteAccepted"));
             navigate({ to: "/admin", search: { qr: result.hotel_id } });
             return;
           } else if (result?.error) {
-            toast.error(result.message || "Erro ao aceitar convite");
+            toast.error(result.message || t("toast.errors.acceptInvite"));
           }
         } catch (error) {
           console.error("Error accepting invitation:", error);
-          toast.error("Erro ao aceitar convite");
+          toast.error(t("toast.errors.acceptInvite"));
         }
       }
     };
@@ -62,17 +64,17 @@ export default function Login() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Preencha email e senha");
+      toast.error(t("auth.errors.fillEmailPassword"));
       return;
     }
-    
+
     setIsSubmitting(true);
     const { error } = await signInWithEmail(email, password);
     setIsSubmitting(false);
-    
+
     if (error) {
-      toast.error(error.message === "Invalid login credentials" 
-        ? "Email ou senha incorretos" 
+      toast.error(error.message === "Invalid login credentials"
+        ? t("auth.errors.invalidCredentials")
         : error.message);
     }
   };
@@ -80,33 +82,33 @@ export default function Login() {
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !displayName) {
-      toast.error("Preencha todos os campos");
+      toast.error(t("auth.errors.fillAllFields"));
       return;
     }
     if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
+      toast.error(t("auth.errors.minPassword"));
       return;
     }
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
+      toast.error(t("auth.errors.passwordsDontMatch"));
       return;
     }
-    
+
     setIsSubmitting(true);
     const { error } = await signUpWithEmail(email, password, displayName);
     setIsSubmitting(false);
-    
+
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Conta criada com sucesso!");
+      toast.success(t("toast.accountCreated"));
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Digite seu email");
+      toast.error(t("auth.errors.invalidEmail"));
       return;
     }
 
@@ -117,9 +119,9 @@ export default function Login() {
         redirectTo: `${window.location.origin}/login?reset=true`,
       });
       setResetEmailSent(true);
-      toast.success("Email de recuperação enviado!");
+      toast.success(t("toast.recoverySent"));
     } catch (error: any) {
-      toast.error(error.message || "Erro ao enviar email");
+      toast.error(error.message || t("toast.errors.sendRecovery"));
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +130,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     const { error } = await signInWithGoogle();
     if (error) {
-      toast.error("Erro ao entrar com Google");
+      toast.error(t("auth.errors.googleError"));
     }
   };
 
@@ -160,11 +162,11 @@ export default function Login() {
 
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Recuperar Senha</CardTitle>
+              <CardTitle className="text-2xl font-bold">{t("auth.recovery.title")}</CardTitle>
               <CardDescription>
-                {resetEmailSent 
-                  ? "Verifique sua caixa de entrada" 
-                  : "Digite seu email para receber o link de recuperação"}
+                {resetEmailSent
+                  ? t("auth.recovery.checkInbox")
+                  : t("auth.recovery.enterEmail")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -173,30 +175,28 @@ export default function Login() {
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <Mail className="w-8 h-8 text-primary" />
                   </div>
-                  <p className="text-muted-foreground">
-                    Enviamos um email para <strong>{email}</strong> com instruções para redefinir sua senha.
-                  </p>
-                  <Button 
-                    variant="outline" 
+                  <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("auth.recovery.emailSent", { email }) }} />
+                  <Button
+                    variant="outline"
                     className="w-full"
                     onClick={() => {
                       setShowForgotPassword(false);
                       setResetEmailSent(false);
                     }}
                   >
-                    Voltar para login
+                    {t("auth.backToLogin")}
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
+                    <Label htmlFor="reset-email">{t("auth.email")}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="reset-email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder={t("auth.placeholders.email")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
@@ -205,16 +205,16 @@ export default function Login() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Enviando..." : "Enviar Link de Recuperação"}
+                    {isSubmitting ? t("auth.recovery.sending") : t("auth.recovery.sendLink")}
                   </Button>
 
-                  <Button 
+                  <Button
                     type="button"
-                    variant="ghost" 
+                    variant="ghost"
                     className="w-full"
                     onClick={() => setShowForgotPassword(false)}
                   >
-                    Voltar para login
+                    {t("auth.backToLogin")}
                   </Button>
                 </form>
               )}
@@ -254,35 +254,35 @@ export default function Login() {
         {inviteToken && (
           <div className="mb-4 p-4 bg-primary/10 rounded-lg text-center">
             <p className="text-sm text-primary font-medium">
-              Você tem um convite pendente! Faça login ou crie uma conta para aceitar.
+              {t("auth.pendingInvite")}
             </p>
           </div>
         )}
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Área Staff</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t("auth.staffArea")}</CardTitle>
             <CardDescription>
-              Entre ou crie sua conta para acessar o painel
+              {t("auth.loginOrCreate")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue={inviteToken ? "signup" : "login"} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+                <TabsTrigger value="login">{t("auth.login")}</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.signup")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="space-y-4">
                 <form onSubmit={handleEmailLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email">{t("auth.email")}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder={t("auth.placeholders.email")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
@@ -292,13 +292,13 @@ export default function Login() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Senha</Label>
+                      <Label htmlFor="login-password">{t("auth.password")}</Label>
                       <button
                         type="button"
                         onClick={() => setShowForgotPassword(true)}
                         className="text-sm text-primary hover:underline"
                       >
-                        Esqueci minha senha
+                        {t("auth.forgotPassword")}
                       </button>
                     </div>
                     <div className="relative">
@@ -306,7 +306,7 @@ export default function Login() {
                       <Input
                         id="login-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        placeholder={t("auth.placeholders.password")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
@@ -322,7 +322,7 @@ export default function Login() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Entrando..." : "Entrar"}
+                    {isSubmitting ? t("auth.loggingIn") : t("auth.login")}
                   </Button>
                 </form>
 
@@ -331,26 +331,26 @@ export default function Login() {
                     <div className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                    <span className="bg-card px-2 text-muted-foreground">{t("auth.or")}</span>
                   </div>
                 </div>
 
                 <Button variant="outline" className="w-full gap-2" onClick={handleGoogleLogin}>
                   <GoogleIcon />
-                  Entrar com Google
+                  {t("auth.loginWithGoogle")}
                 </Button>
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleEmailSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome</Label>
+                    <Label htmlFor="signup-name">{t("auth.name")}</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="signup-name"
                         type="text"
-                        placeholder="Seu nome"
+                        placeholder={t("auth.placeholders.yourName")}
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         className="pl-10"
@@ -359,13 +359,13 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">{t("auth.email")}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder={t("auth.placeholders.email")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
@@ -374,13 +374,13 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
+                    <Label htmlFor="signup-password">{t("auth.password")}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="signup-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Mínimo 6 caracteres"
+                        placeholder={t("auth.placeholders.minChars")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
@@ -396,13 +396,13 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                    <Label htmlFor="confirm-password">{t("auth.confirmPassword")}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="confirm-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Repita a senha"
+                        placeholder={t("auth.placeholders.repeatPassword")}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="pl-10"
@@ -411,7 +411,7 @@ export default function Login() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Criando conta..." : "Criar Conta"}
+                    {isSubmitting ? t("auth.creatingAccount") : t("auth.signup")}
                   </Button>
                 </form>
 
@@ -420,13 +420,13 @@ export default function Login() {
                     <div className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                    <span className="bg-card px-2 text-muted-foreground">{t("auth.or")}</span>
                   </div>
                 </div>
 
                 <Button variant="outline" className="w-full gap-2" onClick={handleGoogleLogin}>
                   <GoogleIcon />
-                  Cadastrar com Google
+                  {t("auth.signupWithGoogle")}
                 </Button>
               </TabsContent>
             </Tabs>
@@ -435,7 +435,7 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           <Link to="/" className="hover:underline">
-            ← Voltar para o site
+            ← {t("auth.backToSite")}
           </Link>
         </p>
       </motion.div>

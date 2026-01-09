@@ -223,7 +223,7 @@ export function ServiceGrid({
           <MessageCircle className="h-6 w-6 text-primary" />
         </div>
         <span className="text-sm font-medium text-foreground">
-          {language === "pt" ? "Falar com Concierge" : language === "es" ? "Hablar con Conserje" : "Chat with Concierge"}
+          {t("chat.chatWithConcierge")}
         </span>
       </motion.button>
     </motion.div>

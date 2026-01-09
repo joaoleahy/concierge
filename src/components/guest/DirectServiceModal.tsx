@@ -72,7 +72,7 @@ export function DirectServiceModal({
 
     } catch (error) {
       console.error("Error creating service request:", error);
-      toast.error("Failed to send request. Please try again.");
+      toast.error(t("errors.failedToSendRequest"));
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ServiceType, generateWhatsAppLink } from "@/hooks/useServiceTypes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,8 @@ export function ServiceRequestModal({
   hotelLanguage,
   onClose,
 }: ServiceRequestModalProps) {
-  const { t, language } = useLanguage();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [details, setDetails] = useState("");
 
   const displayName = language === "pt" && service.name_pt 
@@ -38,7 +40,7 @@ export function ServiceRequestModal({
 
   const handleSendRequest = () => {
     if (service.requires_details && !details.trim()) {
-      toast.error("Please provide details");
+      toast.error(t("validation.pleaseProvideDetails"));
       return;
     }
 
@@ -50,8 +52,8 @@ export function ServiceRequestModal({
     );
 
     // Show confirmation toast
-    toast.info(t("openingWhatsApp"), {
-      description: `${t("room")} ${roomNumber}`,
+    toast.info(t("services.openingWhatsApp"), {
+      description: `${t("header.room")} ${roomNumber}`,
     });
 
     // Open WhatsApp
@@ -87,19 +89,19 @@ export function ServiceRequestModal({
             </Button>
             <CardTitle className="text-lg">{displayName}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              {t("room")} {roomNumber}
+              {t("header.room")} {roomNumber}
             </p>
           </CardHeader>
 
           <CardContent className="space-y-4 pb-6">
             {service.requires_details && (
               <div className="space-y-2">
-                <Label htmlFor="details">{service.details_placeholder || "Details"}</Label>
+                <Label htmlFor="details">{service.details_placeholder || t("services.details")}</Label>
                 <Input
                   id="details"
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder={service.details_placeholder || "Enter details..."}
+                  placeholder={service.details_placeholder || t("services.enterDetails")}
                   className="h-12"
                 />
               </div>
@@ -108,16 +110,16 @@ export function ServiceRequestModal({
             <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
               <p className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
-                This will open WhatsApp to send your request directly to our team.
+                {t("services.whatsappInfo")}
               </p>
             </div>
 
-            <Button 
+            <Button
               onClick={handleSendRequest}
               className="h-12 w-full gap-2"
               size="lg"
             >
-              {t("sendRequest")}
+              {t("services.sendRequest")}
               <ExternalLink className="h-4 w-4" />
             </Button>
           </CardContent>

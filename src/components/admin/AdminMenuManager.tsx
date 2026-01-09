@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, Save, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ interface AdminMenuManagerProps {
 }
 
 export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -57,20 +59,20 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       queryClient.invalidateQueries({ queryKey: ["menu-categories"] });
       setEditingCategory(null);
       setIsAddingCategory(false);
-      toast.success("Categoria salva!");
+      toast.success(t("toast.saved"));
     } catch (error) {
-      toast.error("Erro ao salvar categoria");
+      toast.error(t("toast.errors.save"));
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm("Excluir esta categoria e todos os itens?")) return;
+    if (!confirm(t("confirm.deleteCategory"))) return;
     try {
       await api.delete(`/api/admin/menu/categories/${id}`);
       queryClient.invalidateQueries({ queryKey: ["menu-categories"] });
-      toast.success("Categoria excluída!");
+      toast.success(t("toast.deleted"));
     } catch (error) {
-      toast.error("Erro ao excluir");
+      toast.error(t("toast.errors.delete"));
     }
   };
 
@@ -91,20 +93,20 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       setEditingItem(null);
       setIsAddingItem(false);
-      toast.success("Item salvo!");
+      toast.success(t("toast.saved"));
     } catch (error) {
-      toast.error("Erro ao salvar item");
+      toast.error(t("toast.errors.save"));
     }
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm("Excluir este item?")) return;
+    if (!confirm(t("confirm.deleteItem"))) return;
     try {
       await api.delete(`/api/admin/menu/items/${id}`);
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
-      toast.success("Item excluído!");
+      toast.success(t("toast.deleted"));
     } catch (error) {
-      toast.error("Erro ao excluir");
+      toast.error(t("toast.errors.delete"));
     }
   };
 
@@ -112,7 +114,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
     return (
       <Card>
         <CardContent className="py-12 text-center text-muted-foreground">
-          Nenhum hotel selecionado
+          {t("admin.hotel.noHotel")}
         </CardContent>
       </Card>
     );
@@ -124,11 +126,11 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Categorias do Menu</CardTitle>
-            <CardDescription>Organize os itens do menu por categorias</CardDescription>
+            <CardTitle>{t("admin.menu.categories")}</CardTitle>
+            <CardDescription>{t("admin.menu.categoriesDesc")}</CardDescription>
           </div>
           <Button size="sm" onClick={() => setIsAddingCategory(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Categoria
+            <Plus className="h-4 w-4 mr-1" /> {t("admin.menu.addCategory")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -150,7 +152,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
               </div>
             ))}
             {categories.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">Nenhuma categoria criada</p>
+              <p className="text-center text-muted-foreground py-4">{t("admin.menu.noCategories")}</p>
             )}
           </div>
         </CardContent>
@@ -160,11 +162,11 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Itens do Menu</CardTitle>
-            <CardDescription>Pratos e bebidas disponíveis</CardDescription>
+            <CardTitle>{t("admin.menu.items")}</CardTitle>
+            <CardDescription>{t("admin.menu.itemsDesc")}</CardDescription>
           </div>
           <Button size="sm" onClick={() => setIsAddingItem(true)} disabled={categories.length === 0}>
-            <Plus className="h-4 w-4 mr-1" /> Item
+            <Plus className="h-4 w-4 mr-1" /> {t("admin.menu.addItem")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -176,7 +178,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
                     <p className="font-medium">{item.name}</p>
                     {!item.is_available && (
                       <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded">
-                        Indisponível
+                        {t("admin.menu.unavailable")}
                       </span>
                     )}
                   </div>
@@ -195,7 +197,7 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
               </div>
             ))}
             {items.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">Nenhum item criado</p>
+              <p className="text-center text-muted-foreground py-4">{t("admin.menu.noItems")}</p>
             )}
           </div>
         </CardContent>
@@ -205,9 +207,10 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       <Dialog open={!!editingCategory || isAddingCategory} onOpenChange={(open) => { if (!open) { setEditingCategory(null); setIsAddingCategory(false); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingCategory?.id ? "Editar" : "Nova"} Categoria</DialogTitle>
+            <DialogTitle>{editingCategory?.id ? t("common.edit") : t("common.new")} {t("admin.menu.addCategory")}</DialogTitle>
           </DialogHeader>
           <CategoryForm
+            t={t}
             category={editingCategory || { name: "", name_pt: "", icon: "utensils" }}
             onSave={handleSaveCategory}
             onCancel={() => { setEditingCategory(null); setIsAddingCategory(false); }}
@@ -219,9 +222,10 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
       <Dialog open={!!editingItem || isAddingItem} onOpenChange={(open) => { if (!open) { setEditingItem(null); setIsAddingItem(false); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingItem?.id ? "Editar" : "Novo"} Item</DialogTitle>
+            <DialogTitle>{editingItem?.id ? t("common.edit") : t("common.new")} {t("admin.menu.addItem")}</DialogTitle>
           </DialogHeader>
           <ItemForm
+            t={t}
             item={editingItem || { name: "", name_pt: "", description: "", price: 0, is_available: true, category_id: categories[0]?.id }}
             categories={categories}
             onSave={handleSaveItem}
@@ -233,51 +237,51 @@ export function AdminMenuManager({ hotelId }: AdminMenuManagerProps) {
   );
 }
 
-function CategoryForm({ category, onSave, onCancel }: { category: any; onSave: (c: any) => void; onCancel: () => void }) {
+function CategoryForm({ category, onSave, onCancel, t }: { category: any; onSave: (c: any) => void; onCancel: () => void; t: (key: string) => string }) {
   const [data, setData] = useState(category);
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Nome (EN)</Label>
+        <Label>{t("admin.services.form.nameEN")}</Label>
         <Input value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
       </div>
       <div className="space-y-2">
-        <Label>Nome (PT)</Label>
+        <Label>{t("admin.services.form.namePT")}</Label>
         <Input value={data.name_pt || ""} onChange={(e) => setData({ ...data, name_pt: e.target.value })} />
       </div>
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button onClick={() => onSave(data)}>Salvar</Button>
+        <Button variant="outline" onClick={onCancel}>{t("common.cancel")}</Button>
+        <Button onClick={() => onSave(data)}>{t("common.save")}</Button>
       </div>
     </div>
   );
 }
 
-function ItemForm({ item, categories, onSave, onCancel }: { item: any; categories: any[]; onSave: (i: any) => void; onCancel: () => void }) {
+function ItemForm({ item, categories, onSave, onCancel, t }: { item: any; categories: any[]; onSave: (i: any) => void; onCancel: () => void; t: (key: string) => string }) {
   const [data, setData] = useState(item);
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Nome (EN)</Label>
+        <Label>{t("admin.services.form.nameEN")}</Label>
         <Input value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
       </div>
       <div className="space-y-2">
-        <Label>Nome (PT)</Label>
+        <Label>{t("admin.services.form.namePT")}</Label>
         <Input value={data.name_pt || ""} onChange={(e) => setData({ ...data, name_pt: e.target.value })} />
       </div>
       <div className="space-y-2">
-        <Label>Descrição</Label>
+        <Label>{t("admin.services.form.description")}</Label>
         <Input value={data.description || ""} onChange={(e) => setData({ ...data, description: e.target.value })} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Preço (R$)</Label>
+          <Label>{t("admin.menu.form.price")}</Label>
           <Input type="number" step="0.01" value={data.price} onChange={(e) => setData({ ...data, price: parseFloat(e.target.value) })} />
         </div>
         <div className="space-y-2">
-          <Label>Categoria</Label>
+          <Label>{t("admin.menu.form.category")}</Label>
           <Select value={data.category_id} onValueChange={(v) => setData({ ...data, category_id: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -290,11 +294,11 @@ function ItemForm({ item, categories, onSave, onCancel }: { item: any; categorie
       </div>
       <div className="flex items-center gap-2">
         <Switch checked={data.is_available} onCheckedChange={(v) => setData({ ...data, is_available: v })} />
-        <Label>Disponível</Label>
+        <Label>{t("admin.menu.form.available")}</Label>
       </div>
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button onClick={() => onSave(data)}>Salvar</Button>
+        <Button variant="outline" onClick={onCancel}>{t("common.cancel")}</Button>
+        <Button onClick={() => onSave(data)}>{t("common.save")}</Button>
       </div>
     </div>
   );
